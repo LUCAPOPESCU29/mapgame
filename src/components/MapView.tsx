@@ -8,7 +8,7 @@ L.Icon.Default.mergeOptions({ iconUrl, shadowUrl: iconShadowUrl });
 
 interface MapViewProps {
   onCountryClick: (country: string, lat: number, lng: number) => void;
-  selectedCountry: string | null;
+  selectedCountry?: string | null;
   isGeocoding: boolean;
 }
 
@@ -97,7 +97,7 @@ function GeocodingOverlay({ active }: { active: boolean }) {
   return null;
 }
 
-export function MapView({ onCountryClick, selectedCountry, isGeocoding }: MapViewProps) {
+export function MapView({ onCountryClick, isGeocoding }: MapViewProps) {
   const selectedPos = useRef<{ lat: number; lng: number } | null>(null);
 
   const handleCountryClick = useCallback(

@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, List, Map, X, Search, MessageCircle } from "lucide-react";
+import { Globe, List, Map, Search, MessageCircle } from "lucide-react";
 import { MapView } from "./components/MapView";
 import { SidePanel } from "./components/SidePanel";
 import { Chatbot } from "./components/Chatbot";
@@ -14,7 +14,6 @@ export default function App() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
-  const [geocodeError, setGeocodeError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("map");
   const [listSearch, setListSearch] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
@@ -26,7 +25,6 @@ export default function App() {
       reset();
       setSelectedCountry(country);
       setPanelOpen(true);
-      setGeocodeError(null);
     },
     [reset]
   );
@@ -38,8 +36,6 @@ export default function App() {
     },
     [handleCountryClick]
   );
-
-  const startGeocoding = useCallback(() => setIsGeocoding(true), []);
 
   const handleClose = useCallback(() => {
     setPanelOpen(false);
@@ -71,7 +67,7 @@ export default function App() {
         animate={{ left: panelOpen ? 430 : 0 }}
         transition={{ type: "spring", stiffness: 280, damping: 30 }}
         style={{ right: 0 }}
-        onMouseDown={() => { if (!isGeocoding) setIsGeocoding(true); }}
+        onMouseDown={() => setIsGeocoding(true)}
         onMouseUp={() => setIsGeocoding(false)}
       >
         <MapView

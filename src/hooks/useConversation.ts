@@ -43,7 +43,7 @@ export function useConversation() {
       setStreamState({ isStreaming: false, streamedText: accumulated, summary, facts, error: null });
 
       const assistantMsg: Message = { role: "assistant", content: accumulated };
-      setMessages((prev) => [...msgs, assistantMsg]);
+      setMessages([...msgs, assistantMsg]);
     } catch (e) {
       setStreamState((p) => ({
         ...p, isStreaming: false,

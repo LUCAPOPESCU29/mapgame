@@ -329,7 +329,7 @@ export function Chatbot({ open, onClose }: ChatbotProps) {
                 </motion.div>
               )}
 
-              {messages.map((msg, i) => (
+              {messages.map((msg) => (
                 <motion.div
                   key={msg.id}
                   initial={{ opacity: 0, y: 10 }}

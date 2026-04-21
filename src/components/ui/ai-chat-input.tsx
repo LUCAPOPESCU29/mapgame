@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useState, useEffect, useRef } from "react";
-import { Lightbulb, Globe, Send, Paperclip } from "lucide-react";
+import { Lightbulb, Globe, Send } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const PLACEHOLDERS = [

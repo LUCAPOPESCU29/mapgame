@@ -49,7 +49,7 @@ const FOLLOW_UPS = [
   "Tell me about trade and economy.",
 ];
 
-export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp, hasHistory }: SidePanelProps) {
+export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: SidePanelProps) {
   const [phase, setPhase] = useState<Phase>("era");
   const [dir, setDir] = useState(1);
 
