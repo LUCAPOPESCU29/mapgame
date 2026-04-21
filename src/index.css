@@ -201,3 +201,76 @@
 .history-prose p:last-child {
   margin-bottom: 0;
 }
+
+/* ─── Aurora background animation ───────────────────────────── */
+@keyframes aurora {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ─── Float particle animation ───────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+
+/* ─── Border spin (shine border / border beam) ───────────────── */
+@keyframes border-spin {
+  from { --angle: 0deg; transform: rotate(0deg); }
+  to   { --angle: 360deg; transform: rotate(360deg); }
+}
+
+/* ─── Gradient text animation ────────────────────────────────── */
+@keyframes gradient-x {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ─── Border beam travel ─────────────────────────────────────── */
+@keyframes border-beam-travel {
+  0%   { top: -50%; left: -50%; }
+  25%  { top: -50%; left: calc(100% - 50%); }
+  50%  { top: calc(100% - 50%); left: calc(100% - 50%); }
+  75%  { top: calc(100% - 50%); left: -50%; }
+  100% { top: -50%; left: -50%; }
+}
+
+/* ─── Gradient shimmer text ──────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(
+    90deg,
+    #9a7226 0%,
+    #C9A84C 25%,
+    #e2c97e 50%,
+    #C9A84C 75%,
+    #9a7226 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-x 4s linear infinite;
+}
+
+/* ─── Gold glow box-shadow ───────────────────────────────────── */
+.glow-gold {
+  box-shadow: 0 0 20px rgba(201,168,76,0.3), 0 0 40px rgba(201,168,76,0.15);
+}
+
+/* ─── Card hover glow ────────────────────────────────────────── */
+.card-hover-glow:hover {
+  border-color: rgba(201,168,76,0.4);
+  box-shadow: 0 0 0 1px rgba(201,168,76,0.15), 0 0 20px rgba(201,168,76,0.1);
+}
+
+/* ─── Pulsing glow ring ──────────────────────────────────────── */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(201,168,76,0.4), 0 0 16px rgba(201,168,76,0.2); }
+  50%       { box-shadow: 0 0 16px rgba(201,168,76,0.7), 0 0 32px rgba(201,168,76,0.35); }
+}
+
+.glow-pulse-ring {
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}

@@ -10,6 +10,7 @@ import { TimelineBar } from "./TimelineBar";
 import { BentoGrid } from "./BentoGrid";
 import { SkeletonLoader } from "./SkeletonLoader";
 import { AnimatedBeamCard } from "./AnimatedBeamCard";
+import { BorderBeam } from "./ui/border-beam";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -48,6 +49,26 @@ const FOLLOW_UPS = [
   "What was the role of religion?",
   "Tell me about trade and economy.",
 ];
+
+// Decorative SVG ornament
+function PanelOrnament() {
+  return (
+    <svg
+      width="48"
+      height="24"
+      viewBox="0 0 48 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="mx-auto mb-1 opacity-30"
+    >
+      <path d="M24 2 L28 8 L36 8 L30 13 L32 21 L24 16 L16 21 L18 13 L12 8 L20 8 Z" stroke="#C9A84C" strokeWidth="1" fill="none" />
+      <line x1="0" y1="12" x2="10" y2="12" stroke="#C9A84C" strokeWidth="0.75" />
+      <line x1="38" y1="12" x2="48" y2="12" stroke="#C9A84C" strokeWidth="0.75" />
+      <circle cx="5" cy="12" r="1.5" fill="#C9A84C" />
+      <circle cx="43" cy="12" r="1.5" fill="#C9A84C" />
+    </svg>
+  );
+}
 
 export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: SidePanelProps) {
   const [phase, setPhase] = useState<Phase>("era");
@@ -152,15 +173,27 @@ export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: 
       animate="visible"
       exit="exit"
     >
-      {/* Glass bg */}
-      <div className="absolute inset-0 bg-[#0e0b07]/96 backdrop-blur-xl border-r border-gold/12 shadow-[6px_0_50px_rgba(0,0,0,0.85)]" />
-      {/* Top accent */}
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
+      {/* Glass bg — richer gradient + stronger blur */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0e0b07]/98 via-[#100d08]/96 to-[#0a0805]/98 backdrop-blur-2xl border-r border-gold/12 shadow-[6px_0_50px_rgba(0,0,0,0.85)]" />
+      {/* Top accent line */}
+      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
+      {/* Right edge BorderBeam */}
+      <div className="absolute right-0 inset-y-0 w-px overflow-hidden">
+        <BorderBeam
+          size={300}
+          duration={10}
+          colorFrom="#C9A84C"
+          colorTo="transparent"
+        />
+      </div>
 
       <div className="relative z-10 flex flex-col h-full overflow-hidden">
 
         {/* ── Header ─────────────────────────────────────── */}
         <div className="flex-shrink-0 px-5 pt-5 pb-3 border-b border-white/[0.04]">
+          {/* Decorative ornament */}
+          <PanelOrnament />
+
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2.5">
               <span className="text-3xl leading-none">{flag}</span>
@@ -173,28 +206,46 @@ export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: 
                 </p>
               </div>
             </div>
-            <button onClick={onClose} className="p-1.5 rounded-lg text-parchment-600 hover:text-gold hover:bg-gold/10 transition-all">
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-parchment-600 hover:text-gold hover:bg-gold/10 transition-all"
+            >
               <X className="w-4 h-4" />
             </button>
           </div>
           <Breadcrumbs />
 
-          {/* Step indicators */}
+          {/* Step indicators — animated rings */}
           <div className="flex items-center gap-1.5 mt-3">
-            {(["era", "region", "result"] as Phase[]).map((p, i) => (
-              <div key={p} className="flex items-center gap-1.5">
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-cinzel font-bold transition-all duration-300 ${
-                  phase === p ? "bg-gold text-ink" :
-                  (["era", "region", "result"].indexOf(phase) > i) ? "bg-gold/30 text-gold border border-gold/30" :
-                  "bg-ink-muted text-parchment-600 border border-white/10"
-                }`}>
-                  {i + 1}
+            {(["era", "region", "result"] as Phase[]).map((p, i) => {
+              const isActive = phase === p;
+              const isDone = (["era", "region", "result"].indexOf(phase) > i);
+              return (
+                <div key={p} className="flex items-center gap-1.5">
+                  <div className="relative">
+                    {/* Glow ring when active */}
+                    {isActive && (
+                      <motion.div
+                        className="absolute -inset-1 rounded-full"
+                        style={{ boxShadow: "0 0 12px rgba(201,168,76,0.5), 0 0 24px rgba(201,168,76,0.2)" }}
+                        animate={{ opacity: [0.6, 1, 0.6] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    )}
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-cinzel font-bold transition-all duration-300 ${
+                      isActive ? "bg-gold text-ink shadow-[0_0_8px_rgba(201,168,76,0.6)]" :
+                      isDone ? "bg-gold/30 text-gold border border-gold/30" :
+                      "bg-ink-muted text-parchment-600 border border-white/10"
+                    }`}>
+                      {i + 1}
+                    </div>
+                  </div>
+                  {i < 2 && <div className={`h-px w-8 transition-all duration-500 ${
+                    isDone ? "bg-gold/40" : "bg-white/10"
+                  }`} />}
                 </div>
-                {i < 2 && <div className={`h-px w-8 transition-all duration-500 ${
-                  ["era","region","result"].indexOf(phase) > i ? "bg-gold/40" : "bg-white/10"
-                }`} />}
-              </div>
-            ))}
+              );
+            })}
             <span className="ml-1 font-garamond text-[10px] text-parchment-700 italic">
               {phase === "era" ? "Era" : phase === "region" ? "Region" : "Result"}
             </span>
@@ -234,17 +285,23 @@ export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: 
                   </form>
                   <p className="font-garamond text-xs text-parchment-600 italic mb-2">Or choose an epoch:</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {ERA_SUGGESTIONS.map(({ label, years }) => (
-                      <Badge
-                        key={label}
-                        variant={selectedEra === label ? "selected" : "default"}
-                        onClick={() => handleChipEra(label)}
-                        title={years}
-                        className="cursor-pointer text-xs"
-                      >
-                        {label}
-                      </Badge>
-                    ))}
+                    {ERA_SUGGESTIONS.map(({ label, years }) => {
+                      const isSelected = selectedEra === label;
+                      return (
+                        <Badge
+                          key={label}
+                          variant={isSelected ? "selected" : "default"}
+                          onClick={() => handleChipEra(label)}
+                          title={years}
+                          className="cursor-pointer text-xs transition-all"
+                          style={isSelected ? {
+                            boxShadow: "0 0 12px rgba(201,168,76,0.4), 0 0 4px rgba(201,168,76,0.3)",
+                          } : undefined}
+                        >
+                          {label}
+                        </Badge>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -290,9 +347,11 @@ export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: 
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.04 }}
                         onClick={() => handleRegionSubmit(r)}
-                        className="text-left px-3.5 py-2.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:border-gold/40 hover:bg-gold/8 transition-all group"
+                        className="relative overflow-hidden text-left px-3.5 py-2.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:border-gold/40 hover:bg-gold/8 transition-all group"
                       >
-                        <span className="font-garamond text-sm text-parchment-200 group-hover:text-gold transition-colors">
+                        {/* Shimmer on hover */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity beam-gradient pointer-events-none" />
+                        <span className="relative font-garamond text-sm text-parchment-200 group-hover:text-gold transition-colors">
                           {r}
                         </span>
                       </motion.button>
@@ -403,13 +462,18 @@ export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: 
                     >
                       <button
                         onClick={() => setShowDeepDive((v) => !v)}
-                        className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border transition-all duration-200 group ${
+                        className={`relative overflow-hidden w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border transition-all duration-200 group ${
                           showDeepDive
                             ? "border-gold/50 bg-gold/12"
                             : "border-gold/25 bg-gold/6 hover:border-gold/45 hover:bg-gold/12"
                         }`}
+                        style={!isStreaming && summary ? {
+                          animation: "glow-pulse 3s ease-in-out infinite",
+                        } : undefined}
                       >
-                        <div className="flex items-center gap-2.5">
+                        {/* Shine sweep */}
+                        <div className="absolute inset-0 beam-gradient pointer-events-none opacity-60" />
+                        <div className="relative flex items-center gap-2.5">
                           <div className="w-7 h-7 rounded-lg bg-gold/20 flex items-center justify-center flex-shrink-0 group-hover:bg-gold/30 transition-colors">
                             <Telescope className="w-3.5 h-3.5 text-gold" />
                           </div>
@@ -423,7 +487,7 @@ export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: 
                           </div>
                         </div>
                         <ChevronRight
-                          className={`w-4 h-4 text-gold/50 flex-shrink-0 transition-transform duration-200 ${showDeepDive ? "rotate-90" : ""}`}
+                          className={`relative w-4 h-4 text-gold/50 flex-shrink-0 transition-transform duration-200 ${showDeepDive ? "rotate-90" : ""}`}
                         />
                       </button>
 
@@ -460,9 +524,10 @@ export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: 
                                       setShowDeepDive(false);
                                     }}
                                     disabled={isStreaming}
-                                    className="px-2.5 py-1 rounded-full border border-gold/20 bg-gold/5 text-parchment-400 font-garamond text-xs hover:border-gold/50 hover:text-gold hover:bg-gold/15 transition-all disabled:opacity-40"
+                                    className="relative overflow-hidden px-2.5 py-1 rounded-full border border-gold/20 bg-gold/5 text-parchment-400 font-garamond text-xs hover:border-gold/50 hover:text-gold hover:bg-gold/15 transition-all disabled:opacity-40 group"
                                   >
-                                    {topic}
+                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity beam-gradient pointer-events-none" />
+                                    <span className="relative">{topic}</span>
                                   </button>
                                 ))}
                               </div>
@@ -528,9 +593,10 @@ export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: 
                             key={q}
                             onClick={() => onFollowUp(q)}
                             disabled={isStreaming}
-                            className="px-2.5 py-1 rounded-full border border-white/[0.07] bg-transparent text-parchment-500 font-garamond text-xs hover:border-gold/40 hover:text-gold transition-colors disabled:opacity-40"
+                            className="relative overflow-hidden px-2.5 py-1 rounded-full border border-white/[0.07] bg-transparent text-parchment-500 font-garamond text-xs hover:border-gold/40 hover:text-gold transition-colors disabled:opacity-40 group"
                           >
-                            {q}
+                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity beam-gradient pointer-events-none" />
+                            <span className="relative">{q}</span>
                           </button>
                         ))}
                       </div>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { X, Bot, Lightbulb, Globe, Zap, BookOpen } from "lucide-react";
 import { AIChatInput } from "./ui/ai-chat-input";
+import { BorderBeam } from "./ui/border-beam";
 
 interface ChatMessage {
   id: string;
@@ -232,11 +233,24 @@ export function Chatbot({ open, onClose }: ChatbotProps) {
           animate="visible"
           exit="exit"
         >
-          <div className="flex flex-col rounded-t-2xl sm:rounded-2xl overflow-hidden border border-gold/20 shadow-[0_-8px_60px_rgba(0,0,0,0.8)]"
+          <div
+            className="relative flex flex-col rounded-t-2xl sm:rounded-2xl overflow-hidden border border-gold/20 shadow-[0_-8px_60px_rgba(0,0,0,0.8)]"
             style={{ background: "rgba(13,10,6,0.97)", backdropFilter: "blur(20px)", height: "clamp(480px, 70vh, 680px)" }}
           >
+            {/* BorderBeam traveling around the chatbot panel */}
+            <BorderBeam
+              size={250}
+              duration={9}
+              delay={0}
+              colorFrom="#C9A84C"
+              colorTo="transparent"
+            />
+
             {/* ── Header ─────────────────────────────── */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-gold/10 flex-shrink-0">
+            <div
+              className="relative flex items-center gap-3 px-4 py-3 border-b border-gold/10 flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.05) 0%, transparent 60%)" }}
+            >
               <div className="w-8 h-8 rounded-xl bg-gold/15 border border-gold/25 flex items-center justify-center flex-shrink-0">
                 <Bot className="w-4 h-4 text-gold" />
               </div>
@@ -273,9 +287,14 @@ export function Chatbot({ open, onClose }: ChatbotProps) {
                 </AnimatePresence>
               </div>
 
-              <button onClick={onClose} className="p-1.5 rounded-lg text-parchment-600 hover:text-gold hover:bg-gold/10 transition-all flex-shrink-0">
+              <motion.button
+                onClick={onClose}
+                className="p-1.5 rounded-lg text-parchment-600 hover:text-gold hover:bg-gold/10 transition-all flex-shrink-0"
+                whileHover={{ rotate: 90 }}
+                transition={{ duration: 0.2 }}
+              >
                 <X className="w-4 h-4" />
-              </button>
+              </motion.button>
             </div>
 
             {/* ── Mode info bar ───────────────────────── */}
@@ -283,7 +302,7 @@ export function Chatbot({ open, onClose }: ChatbotProps) {
               {(thinkActive || deepSearchActive) && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden flex-shrink-0"
+                  className="overflow-hidden flex-shrink-0 relative"
                 >
                   <div className="px-4 py-2 bg-gradient-to-r from-gold/5 to-transparent border-b border-gold/8 flex items-center gap-2">
                     <Zap className="w-3 h-3 text-gold/60 flex-shrink-0" />
@@ -300,14 +319,23 @@ export function Chatbot({ open, onClose }: ChatbotProps) {
             </AnimatePresence>
 
             {/* ── Messages ────────────────────────────── */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 min-h-0">
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 min-h-0 relative">
               {messages.length === 0 && (
                 <motion.div
                   className="h-full flex flex-col items-center justify-center gap-4 text-center py-8"
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center">
-                    <BookOpen className="w-7 h-7 text-gold/60" />
+                  {/* Pulsing glow around the icon */}
+                  <div className="relative">
+                    <motion.div
+                      className="absolute -inset-3 rounded-2xl"
+                      style={{ background: "radial-gradient(circle, rgba(201,168,76,0.2) 0%, transparent 70%)" }}
+                      animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <div className="relative w-14 h-14 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center">
+                      <BookOpen className="w-7 h-7 text-gold/60" />
+                    </div>
                   </div>
                   <div>
                     <p className="font-cinzel text-sm font-semibold text-parchment-400 mb-1">Ask the chronicles</p>
@@ -320,9 +348,10 @@ export function Chatbot({ open, onClose }: ChatbotProps) {
                       <button
                         key={q}
                         onClick={() => handleSend(q, thinkActive, deepSearchActive)}
-                        className="px-3 py-1.5 rounded-full border border-gold/20 bg-gold/5 text-parchment-500 font-garamond text-xs hover:border-gold/40 hover:text-gold transition-all"
+                        className="relative overflow-hidden px-3 py-1.5 rounded-full border border-gold/20 bg-gold/5 text-parchment-500 font-garamond text-xs hover:border-gold/40 hover:text-gold transition-all group"
                       >
-                        {q}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity beam-gradient pointer-events-none" />
+                        <span className="relative">{q}</span>
                       </button>
                     ))}
                   </div>
@@ -346,27 +375,33 @@ export function Chatbot({ open, onClose }: ChatbotProps) {
                   <div className={`max-w-[85%] ${msg.role === "user" ? "items-end" : "items-start"} flex flex-col`}>
                     {msg.role === "assistant" && <ModeIndicator think={msg.think} deepSearch={msg.deepSearch} />}
 
-                    <div className={`rounded-2xl px-3.5 py-2.5 ${
+                    <div className={`relative overflow-hidden rounded-2xl px-3.5 py-2.5 ${
                       msg.role === "user"
                         ? "bg-gold/15 border border-gold/25 rounded-tr-sm"
                         : "bg-white/[0.04] border border-white/[0.07] rounded-tl-sm"
                     }`}>
-                      {msg.role === "user" ? (
-                        <p className="font-garamond text-sm text-parchment-100">{msg.content}</p>
-                      ) : msg.content === "" && streamingId === msg.id ? (
-                        <TypingDots />
-                      ) : (
-                        <FormattedMessage text={msg.content} />
+                      {/* Subtle shimmer on user messages */}
+                      {msg.role === "user" && (
+                        <div className="absolute inset-0 beam-gradient pointer-events-none opacity-50" />
                       )}
+                      <div className="relative">
+                        {msg.role === "user" ? (
+                          <p className="font-garamond text-sm text-parchment-100">{msg.content}</p>
+                        ) : msg.content === "" && streamingId === msg.id ? (
+                          <TypingDots />
+                        ) : (
+                          <FormattedMessage text={msg.content} />
+                        )}
 
-                      {/* Streaming cursor */}
-                      {msg.role === "assistant" && streamingId === msg.id && msg.content && (
-                        <motion.span
-                          className="inline-block w-0.5 h-3.5 bg-gold ml-0.5 align-middle"
-                          animate={{ opacity: [1, 0] }}
-                          transition={{ duration: 0.6, repeat: Infinity }}
-                        />
-                      )}
+                        {/* Streaming cursor */}
+                        {msg.role === "assistant" && streamingId === msg.id && msg.content && (
+                          <motion.span
+                            className="inline-block w-0.5 h-3.5 bg-gold ml-0.5 align-middle"
+                            animate={{ opacity: [1, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity }}
+                          />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -376,7 +411,7 @@ export function Chatbot({ open, onClose }: ChatbotProps) {
             </div>
 
             {/* ── Input ───────────────────────────────── */}
-            <div className="flex-shrink-0 p-3 border-t border-gold/10">
+            <div className="flex-shrink-0 p-3 border-t border-gold/10 relative">
               <AIChatInput
                 onSend={handleSend}
                 disabled={isStreaming}

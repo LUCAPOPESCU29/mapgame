@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { List, Map, Search, MessageCircle } from "lucide-react";
 import { MapView } from "./components/MapView";
 import { SidePanel } from "./components/SidePanel";
@@ -7,8 +7,55 @@ import { Chatbot } from "./components/Chatbot";
 import { useConversation } from "./hooks/useConversation";
 import { hasApiKey } from "./lib/anthropic";
 import { COUNTRY_REGIONS, getFlagForCountry } from "./data/countryRegions";
+import { Meteors } from "./components/ui/meteors";
+import { DotPattern } from "./components/ui/dot-pattern";
 
 type ViewMode = "map" | "list";
+
+// 3D tilt card component for the country list
+function TiltCard({
+  children,
+  className,
+  onClick,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [6, -6]), { stiffness: 300, damping: 30 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-6, 6]), { stiffness: 300, damping: 30 });
+
+  function handleMouseMove(e: React.MouseEvent<HTMLButtonElement>) {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+  }
+
+  function handleMouseLeave() {
+    mouseX.set(0);
+    mouseY.set(0);
+  }
+
+  return (
+    <motion.button
+      ref={ref}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d", perspective: 600 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
+      onClick={onClick}
+      className={className}
+    >
+      {children}
+    </motion.button>
+  );
+}
 
 export default function App() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
@@ -61,6 +108,46 @@ export default function App() {
   return (
     <div className="relative w-full h-full overflow-hidden bg-ink">
 
+      {/* ── Background effects layer (z-0) ───────────────── */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {/* Meteors */}
+        <Meteors count={15} />
+        {/* Dot pattern */}
+        <DotPattern className="opacity-40" />
+        {/* Aurora glow blob */}
+        <motion.div
+          className="absolute"
+          style={{
+            width: "70vw",
+            height: "50vh",
+            top: "-15%",
+            left: "15%",
+            background: "radial-gradient(ellipse at center, rgba(201,168,76,0.055) 0%, rgba(201,168,76,0.02) 40%, transparent 70%)",
+            filter: "blur(60px)",
+          }}
+          animate={{
+            scale: [1, 1.15, 1],
+            opacity: [0.6, 1, 0.6],
+            x: [0, 30, 0],
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Second aurora blob */}
+        <motion.div
+          className="absolute"
+          style={{
+            width: "50vw",
+            height: "40vh",
+            bottom: "-10%",
+            right: "5%",
+            background: "radial-gradient(ellipse at center, rgba(120,60,20,0.06) 0%, transparent 70%)",
+            filter: "blur(80px)",
+          }}
+          animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+        />
+      </div>
+
       {/* ── Map (shifts right when panel open) ─────────── */}
       <motion.div
         className="absolute inset-0 z-0"
@@ -92,12 +179,16 @@ export default function App() {
       >
         <div className="flex items-center gap-2.5 flex-shrink-0">
           <div className="relative w-8 h-8 flex-shrink-0">
-            <img src="/favicon.svg" alt="The Emperor's Map" className="w-8 h-8 drop-shadow-[0_0_6px_rgba(201,168,76,0.6)]" />
+            <img
+              src="/favicon.svg"
+              alt="The Emperor's Map"
+              className="w-8 h-8 drop-shadow-[0_0_6px_rgba(201,168,76,0.6)] glow-pulse-ring rounded-full"
+            />
             <div className="absolute inset-0 animate-ping rounded-full bg-gold/10" />
           </div>
           <div>
-            <h1 className="font-cinzel text-lg font-bold text-gold tracking-wide leading-none">
-              The Emperor's Map
+            <h1 className="font-cinzel text-lg font-bold leading-none">
+              <span className="gradient-text">The Emperor's Map</span>
             </h1>
             <p className="font-garamond text-[10px] text-parchment-600 italic leading-none mt-0.5">
               Click any country · Choose an era · Explore a region
@@ -136,9 +227,11 @@ export default function App() {
             exit={{ opacity: 0 }}
             transition={{ delay: 1.2 }}
           >
-            <div className="flex items-center gap-2.5 px-5 py-2.5 rounded-full border border-gold/20 bg-ink-light/80 backdrop-blur-md shadow-gold">
+            <div className="relative overflow-hidden flex items-center gap-2.5 px-5 py-2.5 rounded-full border border-gold/20 bg-ink-light/80 backdrop-blur-md shadow-gold">
+              {/* Shine sweep */}
+              <div className="absolute inset-0 beam-gradient pointer-events-none" />
               <motion.div
-                className="w-2 h-2 rounded-full bg-gold"
+                className="w-2 h-2 rounded-full bg-gold flex-shrink-0"
                 animate={{ scale: [1, 1.6, 1], opacity: [1, 0.4, 1] }}
                 transition={{ duration: 2.2, repeat: Infinity }}
               />
@@ -220,32 +313,35 @@ export default function App() {
               </button>
             </div>
 
-            {/* Grid of countries */}
+            {/* Grid of countries — 3D tilt cards */}
             <div className="h-[calc(100%-80px)] overflow-y-auto p-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {filteredCountries.map((country, i) => {
                   const flag = getFlagForCountry(country);
                   const isSelected = selectedCountry === country;
                   return (
-                    <motion.button
+                    <motion.div
                       key={country}
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.015 }}
-                      onClick={() => { handleCountryClick(country); setViewMode("map"); }}
-                      className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all group ${
-                        isSelected
-                          ? "border-gold/50 bg-gold/15"
-                          : "border-white/[0.06] bg-white/[0.02] hover:border-gold/30 hover:bg-gold/8"
-                      }`}
                     >
-                      <span className="text-xl flex-shrink-0">{flag}</span>
-                      <span className={`font-cinzel text-xs leading-tight transition-colors ${
-                        isSelected ? "text-gold" : "text-parchment-300 group-hover:text-gold"
-                      }`}>
-                        {country}
-                      </span>
-                    </motion.button>
+                      <TiltCard
+                        onClick={() => { handleCountryClick(country); setViewMode("map"); }}
+                        className={`w-full flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all group card-hover-glow ${
+                          isSelected
+                            ? "border-gold/50 bg-gold/15"
+                            : "border-white/[0.06] bg-white/[0.02] hover:border-gold/30 hover:bg-gold/8"
+                        }`}
+                      >
+                        <span className="text-xl flex-shrink-0">{flag}</span>
+                        <span className={`font-cinzel text-xs leading-tight transition-colors ${
+                          isSelected ? "text-gold" : "text-parchment-300 group-hover:text-gold"
+                        }`}>
+                          {country}
+                        </span>
+                      </TiltCard>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -272,7 +368,7 @@ export default function App() {
       <AnimatePresence>
         {!chatOpen && (
           <motion.button
-            className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full border border-gold/30 bg-ink-light/95 backdrop-blur-md shadow-gold hover:border-gold/60 hover:shadow-gold-lg transition-all group"
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full border border-gold/40 bg-ink-light/95 backdrop-blur-md shadow-gold hover:border-gold/70 hover:shadow-gold-lg transition-all group overflow-hidden"
             onClick={() => setChatOpen(true)}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -281,15 +377,28 @@ export default function App() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <div className="relative">
-              <MessageCircle className="w-5 h-5 text-gold" />
-              <motion.div
-                className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-gold"
-                animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
+            {/* Rotating gradient border glow */}
+            <div
+              className="absolute inset-0 rounded-full pointer-events-none"
+              style={{
+                background: "conic-gradient(from var(--angle, 0deg), transparent 0%, rgba(201,168,76,0.4) 20%, transparent 40%)",
+                animation: "border-spin 6s linear infinite",
+                opacity: 0.5,
+              }}
+            />
+            {/* Shine sweep */}
+            <div className="absolute inset-0 beam-gradient pointer-events-none" />
+            <div className="relative flex items-center gap-2">
+              <div className="relative">
+                <MessageCircle className="w-5 h-5 text-gold" />
+                <motion.div
+                  className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-gold"
+                  animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+              </div>
+              <span className="font-cinzel text-xs font-semibold text-gold">Ask Historicus</span>
             </div>
-            <span className="font-cinzel text-xs font-semibold text-gold">Ask Historicus</span>
           </motion.button>
         )}
       </AnimatePresence>
