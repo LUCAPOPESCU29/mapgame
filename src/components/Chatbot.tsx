@@ -13,7 +13,7 @@ interface ChatMessage {
 
 function getChatSystemPrompt(think: boolean, deepSearch: boolean): string {
   if (think && deepSearch) {
-    return `You are The Emperor's Map — an expert historian and scholar AI.
+    return `You are Historicus — an expert historian and scholar AI.
 Reason step by step through the question before answering.
 Provide thorough, scholarly responses with:
 - Deep historical context and multiple perspectives
@@ -24,13 +24,13 @@ Structure your answer clearly. Be comprehensive but engaging.
 You may use markdown-style formatting (bold, lists) for clarity.`;
   }
   if (think) {
-    return `You are The Emperor's Map — a thoughtful historical guide.
+    return `You are Historicus — a thoughtful historical guide.
 Reason carefully before responding. Structure your answer with clear analysis,
 consider multiple angles, and provide insight beyond surface facts.
 Give analytical, well-reasoned historical responses.`;
   }
   if (deepSearch) {
-    return `You are The Emperor's Map — a comprehensive historical researcher.
+    return `You are Historicus — a comprehensive historical researcher.
 Provide detailed, richly informative responses covering:
 - Primary historical evidence and key events
 - Social, cultural, economic and political dimensions
@@ -38,7 +38,7 @@ Provide detailed, richly informative responses covering:
 - Broad temporal and geographic context
 Be thorough and specific.`;
   }
-  return `You are The Emperor's Map — a knowledgeable and engaging historical guide.
+  return `You are Historicus — a knowledgeable and engaging historical guide.
 Give clear, accurate, and vivid answers to historical questions.
 Be concise but insightful. Use compelling historical detail.`;
 }
@@ -242,7 +242,7 @@ export function Chatbot({ open, onClose }: ChatbotProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-cinzel text-sm font-bold text-gold leading-tight">
-                  The Emperor's Map AI
+                  Historicus AI
                 </h3>
                 <p className="font-garamond text-[10px] text-parchment-600 italic">
                   Ask anything about history

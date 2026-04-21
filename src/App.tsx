@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, List, Map, Search, MessageCircle } from "lucide-react";
+import { List, Map, Search, MessageCircle } from "lucide-react";
 import { MapView } from "./components/MapView";
 import { SidePanel } from "./components/SidePanel";
 import { Chatbot } from "./components/Chatbot";
@@ -91,9 +91,9 @@ export default function App() {
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         <div className="flex items-center gap-2.5 flex-shrink-0">
-          <div className="relative w-7 h-7">
-            <Globe className="w-7 h-7 text-gold" />
-            <div className="absolute inset-0 animate-ping rounded-full bg-gold/15" />
+          <div className="relative w-8 h-8 flex-shrink-0">
+            <img src="/favicon.svg" alt="The Emperor's Map" className="w-8 h-8 drop-shadow-[0_0_6px_rgba(201,168,76,0.6)]" />
+            <div className="absolute inset-0 animate-ping rounded-full bg-gold/10" />
           </div>
           <div>
             <h1 className="font-cinzel text-lg font-bold text-gold tracking-wide leading-none">
@@ -289,7 +289,7 @@ export default function App() {
                 transition={{ duration: 2, repeat: Infinity }}
               />
             </div>
-            <span className="font-cinzel text-xs font-semibold text-gold">Ask the Emperor</span>
+            <span className="font-cinzel text-xs font-semibold text-gold">Ask Historicus</span>
           </motion.button>
         )}
       </AnimatePresence>
