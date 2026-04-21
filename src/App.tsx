@@ -97,7 +97,7 @@ export default function App() {
           </div>
           <div>
             <h1 className="font-cinzel text-lg font-bold text-gold tracking-wide leading-none">
-              Europa Temporis
+              The Emperor's Map
             </h1>
             <p className="font-garamond text-[10px] text-parchment-600 italic leading-none mt-0.5">
               Click any country · Choose an era · Explore a region
@@ -289,7 +289,7 @@ export default function App() {
                 transition={{ duration: 2, repeat: Infinity }}
               />
             </div>
-            <span className="font-cinzel text-xs font-semibold text-gold">Ask Historicus</span>
+            <span className="font-cinzel text-xs font-semibold text-gold">Ask the Emperor</span>
           </motion.button>
         )}
       </AnimatePresence>

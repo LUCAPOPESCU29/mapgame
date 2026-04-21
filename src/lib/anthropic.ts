@@ -14,7 +14,7 @@ function getKey(): string {
 }
 
 function systemPrompt(): string {
-  return `You are Europa Temporis — a poetic, authoritative historical guide.
+  return `You are The Emperor's Map — a poetic, authoritative historical guide.
 
 When given a country, region within that country, and a time period, respond with EXACTLY:
 
