@@ -11,6 +11,7 @@ import { BentoGrid } from "./BentoGrid";
 import { SkeletonLoader } from "./SkeletonLoader";
 import { AnimatedBeamCard } from "./AnimatedBeamCard";
 import { BorderBeam } from "./ui/border-beam";
+import { TracingBeam } from "./ui/tracing-beam";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -88,6 +89,14 @@ export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: 
   const flag = getFlagForCountry(country);
   const regions = getRegionsForCountry(country);
   const { isStreaming, summary, facts, error } = streamState;
+
+  const [beamProgress, setBeamProgress] = useState(0);
+
+  useEffect(() => {
+    const len = summary?.length ?? 0;
+    const progress = Math.min(len / 2000, 1);
+    setBeamProgress(isStreaming ? progress : (summary ? 1 : 0));
+  }, [isStreaming, summary]);
 
   // Auto-advance to result when streaming starts
   useEffect(() => {
@@ -253,7 +262,14 @@ export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: 
         </div>
 
         {/* ── Step content ───────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-row">
+          {/* Tracing beam — decorative left-edge progress indicator */}
+          {phase === "result" && (
+            <div className="flex-shrink-0 pt-5 pl-2">
+              <TracingBeam active={isStreaming} progress={beamProgress} />
+            </div>
+          )}
+          <div className="flex-1 overflow-x-hidden">
           <AnimatePresence mode="wait" custom={dir}>
 
             {/* STEP 1 — Era */}
@@ -654,6 +670,7 @@ export function SidePanel({ country, streamState, onClose, onAsk, onFollowUp }: 
             )}
 
           </AnimatePresence>
+          </div>
         </div>
       </div>
 

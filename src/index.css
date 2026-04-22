@@ -39,7 +39,7 @@
 .leaflet-container {
   background: #0d0a06 !important;
   font-family: 'EB Garamond', serif;
-  cursor: crosshair !important;
+  cursor: none !important;
 }
 
 /* Crisper, more modern tile look — no sepia, higher contrast */
@@ -325,4 +325,18 @@
 
 .glow-pulse-ring {
   animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+/* ─── Marquee scroll ─────────────────────────────────────────── */
+@keyframes marquee-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll var(--marquee-duration, 60s) linear infinite;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
 }

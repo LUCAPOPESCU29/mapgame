@@ -9,6 +9,12 @@ import { hasApiKey } from "./lib/anthropic";
 import { COUNTRY_REGIONS, getFlagForCountry } from "./data/countryRegions";
 import { Meteors } from "./components/ui/meteors";
 import { DotPattern } from "./components/ui/dot-pattern";
+import { NumberTicker } from "./components/ui/number-ticker";
+import { WordRotate } from "./components/ui/word-rotate";
+import { Marquee } from "./components/ui/marquee";
+import { MagneticButton } from "./components/ui/magnetic-button";
+import { GlowingStars } from "./components/ui/glowing-stars";
+import { MapRipple } from "./components/ui/map-ripple";
 
 type ViewMode = "map" | "list";
 
@@ -161,6 +167,7 @@ export default function App() {
           animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.8, 0.4] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 8 }}
         />
+        <GlowingStars />
       </div>
 
       {/* ── Map ───────────────────────────────────────────── */}
@@ -169,10 +176,14 @@ export default function App() {
         animate={{ left: panelOpen ? 430 : 0 }}
         transition={{ type: "spring", stiffness: 280, damping: 30 }}
         style={{ right: 0 }}
-        onMouseDown={() => setIsGeocoding(true)}
         onMouseUp={() => setIsGeocoding(false)}
       >
-        <MapView onCountryClick={handleMapClick} selectedCountry={selectedCountry} isGeocoding={isGeocoding} />
+        <MapRipple
+          className="w-full h-full"
+          onAreaClick={() => setIsGeocoding(true)}
+        >
+          <MapView onCountryClick={handleMapClick} selectedCountry={selectedCountry} isGeocoding={isGeocoding} />
+        </MapRipple>
       </motion.div>
 
       {/* ── Vignette — stronger edges ─────────────────────── */}
@@ -229,7 +240,13 @@ export default function App() {
                 <span className="gradient-text">The Emperor's Map</span>
               </h1>
               <p className="font-garamond text-[10px] text-parchment-600 italic leading-none mt-0.5 tracking-wide">
-                {countryCount} nations · across all ages · powered by AI
+                {countryCount} nations ·{" "}
+                <WordRotate
+                  words={["Empires", "Kingdoms", "Civilizations", "Dynasties", "Chronicles"]}
+                  className="text-gold/70 inline"
+                  interval={2500}
+                />{" "}
+                · powered by AI
               </p>
             </div>
           </div>
@@ -245,7 +262,7 @@ export default function App() {
           >
             <div className="flex items-center gap-1.5">
               <Crown className="w-3 h-3 text-gold/50" />
-              <span className="font-cinzel text-[10px] text-parchment-600">{countryCount} Countries</span>
+              <NumberTicker value={countryCount} suffix=" Countries" className="font-cinzel text-[10px] text-parchment-600" />
             </div>
             <div className="w-px h-3 bg-gold/15" />
             <div className="flex items-center gap-1.5">
@@ -367,6 +384,23 @@ export default function App() {
                     }}
                   />
                 ))}
+              </motion.div>
+
+              {/* Marquee — atmospheric historical ticker */}
+              <motion.div
+                className="absolute bottom-0 left-0 right-0 z-20 overflow-hidden pointer-events-none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2.2 }}
+              >
+                <Marquee
+                  className="font-cinzel text-[10px] text-gold/30 tracking-widest py-1"
+                  speed={18}
+                  pauseOnHover={false}
+                  direction="left"
+                >
+                  Roman Empire · Viking Age · Ottoman Empire · Mongol Conquest · Byzantine Court · Crusades · Renaissance · Age of Sail · Medieval Kingdoms · Silk Road · Phoenician Trade · Aztec Empire · Persian Wars · Macedonian Empire · Napoleonic Wars · Age of Exploration ·&nbsp;
+                </Marquee>
               </motion.div>
             </div>
           </motion.div>
@@ -541,22 +575,24 @@ export default function App() {
             {/* Beam sweep */}
             <div className="absolute inset-0 beam-gradient pointer-events-none" />
 
-            <div className="relative flex items-center gap-2.5">
-              <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
-                  <MessageCircle className="w-4 h-4 text-gold" />
+            <MagneticButton strength={0.4}>
+              <div className="relative flex items-center gap-2.5">
+                <div className="relative">
+                  <div className="w-8 h-8 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
+                    <MessageCircle className="w-4 h-4 text-gold" />
+                  </div>
+                  <motion.div
+                    className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-gold border-2 border-ink"
+                    animate={{ scale: [1, 1.3, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
                 </div>
-                <motion.div
-                  className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-gold border-2 border-ink"
-                  animate={{ scale: [1, 1.3, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
+                <div className="text-left">
+                  <p className="font-cinzel text-xs font-bold text-gold leading-tight">Ask Historicus</p>
+                  <p className="font-garamond text-[10px] text-parchment-600 italic leading-tight">AI historian</p>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="font-cinzel text-xs font-bold text-gold leading-tight">Ask Historicus</p>
-                <p className="font-garamond text-[10px] text-parchment-600 italic leading-tight">AI historian</p>
-              </div>
-            </div>
+            </MagneticButton>
           </motion.button>
         )}
       </AnimatePresence>
