@@ -441,7 +441,7 @@ export function Chatbot({ open, onClose }: ChatbotProps) {
                         </div>
                       </div>
                       <div className="min-w-0 pt-1 text-left">
-                        <p className="mb-2 font-cinzel text-[10px] uppercase tracking-[0.28em] text-gold/55">Open scriptorium</p>
+                        <p className="mb-2 font-cinzel text-[10px] uppercase tracking-[0.28em] text-gold/50">Open scriptorium</p>
                         <h4 className="font-cinzel text-[22px] font-semibold leading-none tracking-tight text-parchment-100">
                           Ask the chronicles
                         </h4>
@@ -458,7 +458,7 @@ export function Chatbot({ open, onClose }: ChatbotProps) {
                           type="button"
                           onClick={() => handleSend(item.question, thinkActive, deepSearchActive)}
                           disabled={isStreaming}
-                          className={`group relative overflow-hidden rounded-2xl border border-gold/15 bg-white/[0.035] px-3.5 py-3 text-left transition-all hover:border-gold/35 hover:bg-gold/10 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 ${index === 2 ? "col-span-2 ml-[18%]" : ""}`}
+                          className={`group relative overflow-hidden rounded-2xl border border-gold/15 bg-white/[0.035] px-3.5 py-3 text-left transition-all hover:border-gold/30 hover:bg-gold/10 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 ${index === 2 ? "col-span-2 ml-[18%]" : ""}`}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.08 + index * 0.06, type: "spring", stiffness: 120, damping: 20 }}
@@ -491,7 +491,7 @@ export function Chatbot({ open, onClose }: ChatbotProps) {
                   >
                     {isAssistant && (
                       <div className="mr-2.5 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-xl border border-gold/20 bg-gold/10 shadow-[inset_0_1px_0_rgba(245,232,196,0.06)]">
-                        <ArchiveMark className="h-3.5 w-3.5 text-gold/85" />
+                        <ArchiveMark className="h-3.5 w-3.5 text-gold/80" />
                       </div>
                     )}
 

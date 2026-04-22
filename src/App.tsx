@@ -1,9 +1,6 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { lazy, Suspense, useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { List, Map, Search, MessageCircle, Compass, Crown, Scroll } from "lucide-react";
-import { MapView } from "./components/MapView";
-import { SidePanel } from "./components/SidePanel";
-import { Chatbot } from "./components/Chatbot";
 import { useConversation } from "./hooks/useConversation";
 import { hasApiKey } from "./lib/anthropic";
 import { COUNTRY_REGIONS, getFlagForCountry } from "./data/countryRegions";
@@ -16,6 +13,10 @@ import { MagneticButton } from "./components/ui/magnetic-button";
 import { MapRipple } from "./components/ui/map-ripple";
 
 type ViewMode = "map" | "list";
+
+const MapView = lazy(() => import("./components/MapView").then((module) => ({ default: module.MapView })));
+const SidePanel = lazy(() => import("./components/SidePanel").then((module) => ({ default: module.SidePanel })));
+const Chatbot = lazy(() => import("./components/Chatbot").then((module) => ({ default: module.Chatbot })));
 
 // Cycling historical prompts shown in the hero
 const HERO_PROMPTS = [
@@ -79,6 +80,39 @@ function CornerOrnament({ className }: { className: string }) {
   );
 }
 
+function useMediaQuery(query: string, fallback = false) {
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === "undefined") return fallback;
+    return window.matchMedia(query).matches;
+  });
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const handleChange = () => setMatches(media.matches);
+    handleChange();
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, [query]);
+
+  return matches;
+}
+
+function MapShellFallback() {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-ink">
+      <div className="w-[min(82vw,320px)] rounded-3xl border border-gold/20 bg-white/[0.035] px-5 py-5 text-center shadow-[inset_0_1px_0_rgba(245,232,196,0.06)]">
+        <div className="mx-auto mb-4 h-1 w-28 overflow-hidden rounded-full bg-white/10">
+          <div className="h-full map-status-progress rounded-full bg-gold/80" />
+        </div>
+        <p className="font-cinzel text-[10px] uppercase tracking-[0.26em] text-gold/80">Preparing atlas</p>
+        <p className="mt-2 font-garamond text-sm italic leading-relaxed text-parchment-600">
+          Loading the map engine and mobile controls.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -88,6 +122,8 @@ export default function App() {
   const [chatOpen, setChatOpen] = useState(false);
   const [promptIdx, setPromptIdx] = useState(0);
   const [promptVisible, setPromptVisible] = useState(true);
+  const isDesktop = useMediaQuery("(min-width: 768px)", true);
+  const isPhone = !isDesktop;
 
   const { streamState, ask, followUp, reset, hasHistory } = useConversation();
 
@@ -130,14 +166,17 @@ export default function App() {
     ? allCountries.filter((c) => c.toLowerCase().includes(listSearch.toLowerCase()))
     : allCountries;
   const countryCount = allCountries.length;
+  const mapOffset = panelOpen && isDesktop ? 430 : 0;
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-ink">
+    <main className="relative h-[100dvh] min-h-[100dvh] w-full max-w-full overflow-hidden bg-ink">
 
       {/* ── Deep background: meteors + dots + aurora ──────── */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <Meteors count={18} />
-        <DotPattern className="opacity-30" />
+        <div className="hidden sm:block">
+          <Meteors count={18} />
+        </div>
+        <DotPattern className="opacity-20 sm:opacity-30" />
 
         {/* Primary aurora — top center */}
         <motion.div className="absolute" style={{
@@ -171,7 +210,7 @@ export default function App() {
       {/* ── Map ───────────────────────────────────────────── */}
       <motion.div
         className="absolute inset-0 z-0"
-        animate={{ left: panelOpen ? 430 : 0 }}
+        animate={{ left: mapOffset }}
         transition={{ type: "spring", stiffness: 280, damping: 30 }}
         style={{ right: 0 }}
         onMouseUp={() => setIsGeocoding(false)}
@@ -180,17 +219,22 @@ export default function App() {
           className="w-full h-full"
           onAreaClick={() => setIsGeocoding(true)}
         >
-          <MapView onCountryClick={handleMapClick} selectedCountry={selectedCountry} isGeocoding={isGeocoding} />
+          <Suspense fallback={<MapShellFallback />}>
+            <MapView onCountryClick={handleMapClick} selectedCountry={selectedCountry} isGeocoding={isGeocoding} />
+          </Suspense>
         </MapRipple>
       </motion.div>
 
       {/* ── Vignette — stronger edges ─────────────────────── */}
-      <div className="absolute inset-0 z-10 pointer-events-none" style={{
+      <div className="absolute inset-0 z-10 pointer-events-none hidden sm:block" style={{
         background: "radial-gradient(ellipse at center, transparent 35%, rgba(13,10,6,0.55) 70%, rgba(13,10,6,0.85) 100%)"
+      }} />
+      <div className="absolute inset-0 z-10 pointer-events-none sm:hidden" style={{
+        background: "linear-gradient(180deg, rgba(13,10,6,0.48) 0%, transparent 20%, transparent 58%, rgba(13,10,6,0.62) 100%)"
       }} />
 
       {/* ── Map corner ornaments ───────────────────────────── */}
-      <div className="absolute inset-0 z-10 pointer-events-none">
+      <div className="absolute inset-0 z-10 pointer-events-none hidden sm:block">
         <CornerOrnament className="absolute top-14 left-2" />
         <div style={{ transform: "scaleX(-1)" }} className="absolute top-14 right-2">
           <CornerOrnament className="" />
@@ -221,23 +265,23 @@ export default function App() {
         {/* Bottom separator */}
         <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-gold/25 to-transparent" />
 
-        <div className="relative flex items-center gap-4 px-5 py-3.5">
+        <div className="relative flex items-center gap-3 px-3.5 py-3 sm:gap-4 sm:px-5 sm:py-3.5">
           {/* Logo + title */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="relative w-9 h-9">
+          <div className="flex min-w-0 flex-shrink items-center gap-2.5 sm:gap-3">
+            <div className="relative h-8 w-8 flex-shrink-0 sm:h-9 sm:w-9">
               <motion.div
                 className="absolute inset-0 rounded-full"
                 style={{ background: "radial-gradient(circle, rgba(201,168,76,0.3) 0%, transparent 70%)" }}
                 animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
                 transition={{ duration: 2.5, repeat: Infinity }}
               />
-              <img src="/favicon.svg" alt="logo" className="relative w-9 h-9 drop-shadow-[0_0_8px_rgba(201,168,76,0.7)]" />
+              <img src="/favicon.svg" alt="logo" className="relative h-8 w-8 drop-shadow-[0_0_8px_rgba(201,168,76,0.7)] sm:h-9 sm:w-9" />
             </div>
-            <div>
-              <h1 className="font-cinzel text-xl font-bold leading-none tracking-wide">
-                <span className="gradient-text">The Emperor's Map</span>
+            <div className="min-w-0">
+              <h1 className="truncate font-cinzel text-[15px] font-bold leading-none tracking-[0.12em] sm:text-xl sm:tracking-wide">
+                <span className="gradient-text">{isPhone ? "Historicus" : "The Emperor's Map"}</span>
               </h1>
-              <p className="font-garamond text-[10px] text-parchment-600 italic leading-none mt-0.5 tracking-wide">
+              <p className="mt-0.5 hidden font-garamond text-[10px] italic leading-none tracking-wide text-parchment-600 min-[380px]:block">
                 {countryCount} nations ·{" "}
                 <WordRotate
                   words={["Empires", "Kingdoms", "Civilizations", "Dynasties", "Chronicles"]}
@@ -249,7 +293,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex-1" />
+          <div className="min-w-1 flex-1" />
 
           {/* Stats badge */}
           <motion.div
@@ -275,20 +319,20 @@ export default function App() {
           </motion.div>
 
           {/* View toggle */}
-          <div className="pointer-events-auto flex items-center gap-1 bg-white/[0.04] backdrop-blur-md border border-gold/15 rounded-full px-1.5 py-1">
+          <div className="pointer-events-auto flex flex-shrink-0 items-center gap-1 rounded-full border border-gold/15 bg-white/[0.04] px-1.5 py-1 backdrop-blur-md">
             <button
               onClick={() => setViewMode("map")}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all text-[10px] font-cinzel ${viewMode === "map" ? "text-gold bg-gold/15 shadow-[0_0_8px_rgba(201,168,76,0.2)]" : "text-parchment-500 hover:text-gold"}`}
             >
               <Map className="w-3.5 h-3.5" />
-              <span className="hidden sm:block">Map</span>
+              <span className="hidden min-[390px]:block">Map</span>
             </button>
             <button
               onClick={() => setViewMode("list")}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all text-[10px] font-cinzel ${viewMode === "list" ? "text-gold bg-gold/15 shadow-[0_0_8px_rgba(201,168,76,0.2)]" : "text-parchment-500 hover:text-gold"}`}
             >
               <List className="w-3.5 h-3.5" />
-              <span className="hidden sm:block">Browse</span>
+              <span className="hidden min-[390px]:block">Browse</span>
             </button>
           </div>
         </div>
@@ -314,7 +358,7 @@ export default function App() {
 
               {/* Cycling question */}
               <motion.div
-                className="flex flex-col items-center gap-2"
+                className="hidden flex-col items-center gap-2 sm:flex"
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 1 }}
@@ -342,7 +386,7 @@ export default function App() {
 
               {/* CTA pill */}
               <motion.div
-                className="relative overflow-hidden flex items-center gap-3 px-6 py-3 rounded-full border border-gold/25 bg-ink/70 backdrop-blur-md"
+                className="relative flex max-w-[calc(100vw-2rem)] items-center gap-2 overflow-hidden rounded-2xl border border-gold/25 bg-ink/75 px-4 py-3 backdrop-blur-md sm:gap-3 sm:rounded-full sm:px-6"
                 style={{ boxShadow: "0 0 30px rgba(201,168,76,0.08), inset 0 0 20px rgba(201,168,76,0.03)" }}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -358,10 +402,10 @@ export default function App() {
                   transition={{ duration: 2.2, repeat: Infinity }}
                 />
                 <span className="font-cinzel text-xs text-parchment-300 tracking-wider">
-                  Click anywhere on the map to begin
+                  {isPhone ? "Tap the map to begin" : "Click anywhere on the map to begin"}
                 </span>
-                <div className="w-px h-3 bg-gold/20 flex-shrink-0" />
-                <span className="font-garamond text-xs text-parchment-600 italic">or browse all nations</span>
+                <div className="hidden h-3 w-px flex-shrink-0 bg-gold/20 min-[380px]:block" />
+                <span className="hidden font-garamond text-xs italic text-parchment-600 min-[380px]:block">or browse nations</span>
               </motion.div>
 
               {/* Dots row under CTA */}
@@ -397,29 +441,29 @@ export default function App() {
                   pauseOnHover={true}
                   direction="left"
                 >
-                  <span className="px-4">⚔ Roman Empire</span>
+                  <span className="px-4">Roman Empire</span>
                   <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">🛡 Viking Age</span>
+                  <span className="px-4">Viking Age</span>
                   <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">☪ Ottoman Empire</span>
+                  <span className="px-4">Ottoman Empire</span>
                   <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">🏹 Mongol Conquest</span>
+                  <span className="px-4">Mongol Conquest</span>
                   <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">✝ Crusades</span>
+                  <span className="px-4">Crusades</span>
                   <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">🎨 Renaissance</span>
+                  <span className="px-4">Renaissance</span>
                   <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">⛵ Age of Sail</span>
+                  <span className="px-4">Age of Sail</span>
                   <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">🏰 Medieval Kingdoms</span>
+                  <span className="px-4">Medieval Kingdoms</span>
                   <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">🗺 Silk Road</span>
+                  <span className="px-4">Silk Road</span>
                   <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">🌊 Age of Exploration</span>
+                  <span className="px-4">Age of Exploration</span>
                   <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">⚱ Byzantine Court</span>
+                  <span className="px-4">Byzantine Court</span>
                   <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">🌺 Aztec Empire</span>
+                  <span className="px-4">Aztec Empire</span>
                   <span className="text-gold/30 px-1">·</span>
                 </Marquee>
               </motion.div>
@@ -453,7 +497,7 @@ export default function App() {
       <AnimatePresence>
         {!apiOk && (
           <motion.div
-            className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 w-full max-w-sm px-4"
+            className="absolute bottom-[7.5rem] left-1/2 z-30 w-full max-w-sm -translate-x-1/2 px-4 sm:bottom-24"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
@@ -487,7 +531,7 @@ export default function App() {
             </div>
 
             {/* List header */}
-            <div className="relative flex items-center gap-3 px-5 pt-16 pb-4">
+            <div className="relative flex flex-wrap items-center gap-3 px-4 pb-4 pt-[4.6rem] sm:flex-nowrap sm:px-5 sm:pt-16">
               {/* Bottom border */}
               <div className="absolute bottom-0 inset-x-5 h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
 
@@ -496,24 +540,24 @@ export default function App() {
                 <p className="font-garamond text-xs text-parchment-600 italic mt-0.5">{countryCount} countries across 6 continents</p>
               </div>
 
-              <div className="flex-1" />
+              <div className="hidden flex-1 sm:block" />
 
               {/* Search */}
-              <div className="flex items-center gap-2 bg-white/[0.04] border border-gold/20 rounded-full px-3 py-2">
+              <div className="order-3 flex w-full items-center gap-2 rounded-full border border-gold/20 bg-white/[0.04] px-3 py-2 sm:order-none sm:w-auto">
                 <Search className="w-3.5 h-3.5 text-gold/50" />
                 <input
                   autoFocus
                   value={listSearch}
                   onChange={(e) => setListSearch(e.target.value)}
                   placeholder="Search nations…"
-                  className="bg-transparent text-xs font-garamond text-parchment-200 placeholder:text-parchment-600 outline-none w-32"
+                  className="w-full bg-transparent font-garamond text-sm text-parchment-200 outline-none placeholder:text-parchment-600 sm:w-32 sm:text-xs"
                 />
               </div>
 
               {/* Back to map */}
               <motion.button
                 onClick={() => setViewMode("map")}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-gold/25 bg-gold/8 text-gold font-cinzel text-xs hover:bg-gold/15 hover:border-gold/50 transition-all"
+                className="flex items-center gap-1.5 rounded-full border border-gold/25 bg-gold/10 px-3.5 py-2 font-cinzel text-xs text-gold transition-all hover:border-gold/50 hover:bg-gold/15"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
@@ -522,8 +566,8 @@ export default function App() {
             </div>
 
             {/* Country grid */}
-            <div className="relative h-[calc(100%-88px)] overflow-y-auto p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+            <div className="relative h-[calc(100%-142px)] overflow-y-auto p-4 sm:h-[calc(100%-88px)]">
+              <div className="grid grid-cols-1 gap-2 min-[390px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {filteredCountries.map((country, i) => {
                   const flag = getFlagForCountry(country);
                   const isSelected = selectedCountry === country;
@@ -539,7 +583,7 @@ export default function App() {
                         className={`w-full flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all group ${
                           isSelected
                             ? "border-gold/60 bg-gold/15 shadow-[0_0_16px_rgba(201,168,76,0.2)]"
-                            : "border-white/[0.06] bg-white/[0.02] hover:border-gold/35 hover:bg-gold/8 hover:shadow-[0_0_12px_rgba(201,168,76,0.1)]"
+                            : "border-white/[0.06] bg-white/[0.02] hover:border-gold/30 hover:bg-gold/10 hover:shadow-[0_0_12px_rgba(201,168,76,0.1)]"
                         }`}
                       >
                         <span className="text-xl flex-shrink-0">{flag}</span>
@@ -561,14 +605,16 @@ export default function App() {
       {/* ── Side panel ───────────────────────────────────── */}
       <AnimatePresence>
         {panelOpen && selectedCountry && (
-          <SidePanel
-            country={selectedCountry}
-            streamState={streamState}
-            onClose={handleClose}
-            onAsk={handleAsk}
-            onFollowUp={followUp}
-            hasHistory={hasHistory}
-          />
+          <Suspense fallback={null}>
+            <SidePanel
+              country={selectedCountry}
+              streamState={streamState}
+              onClose={handleClose}
+              onAsk={handleAsk}
+              onFollowUp={followUp}
+              hasHistory={hasHistory}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
@@ -576,7 +622,7 @@ export default function App() {
       <AnimatePresence>
         {!chatOpen && (
           <motion.button
-            className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-5 py-3.5 rounded-full border border-gold/35 bg-ink/95 backdrop-blur-xl overflow-hidden"
+            className="fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 flex items-center justify-center gap-2.5 overflow-hidden rounded-3xl border border-gold/30 bg-ink/95 px-5 py-3.5 backdrop-blur-xl sm:inset-x-auto sm:bottom-6 sm:right-6 sm:rounded-full"
             style={{ boxShadow: "0 0 0 1px rgba(201,168,76,0.08), 0 8px 32px rgba(0,0,0,0.6), 0 0 20px rgba(201,168,76,0.08)" }}
             onClick={() => setChatOpen(true)}
             initial={{ scale: 0, opacity: 0, y: 20 }}
@@ -619,10 +665,12 @@ export default function App() {
       </AnimatePresence>
 
       {/* ── Chatbot ───────────────────────────────────────── */}
-      <Chatbot open={chatOpen} onClose={() => setChatOpen(false)} />
+      <Suspense fallback={null}>
+        <Chatbot open={chatOpen} onClose={() => setChatOpen(false)} />
+      </Suspense>
 
       {/* ── Ambient floating particles ────────────────────── */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden sm:block">
         {[...Array(8)].map((_, i) => (
           <motion.div
             key={i}
@@ -640,6 +688,6 @@ export default function App() {
           />
         ))}
       </div>
-    </div>
+    </main>
   );
 }

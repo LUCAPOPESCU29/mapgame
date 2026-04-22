@@ -161,7 +161,7 @@ const AIChatInput = ({
         <div className="px-3.5 pb-2 pt-3">
           <label
             htmlFor="historicus-chat-input"
-            className="mb-1.5 block font-cinzel text-[8px] uppercase tracking-[0.28em] text-gold/55"
+            className="mb-1.5 block font-cinzel text-[8px] uppercase tracking-[0.28em] text-gold/50"
           >
             Ask Historicus
           </label>
