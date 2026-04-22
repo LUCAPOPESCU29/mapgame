@@ -44,25 +44,38 @@
 .leaflet-container {
   background: #0d0a06 !important;
   font-family: 'EB Garamond', serif;
-  cursor: crosshair;
+  cursor: grab;
   height: 100% !important;
   min-height: 100% !important;
   touch-action: pan-x pan-y;
 }
 
-/* Crisper, more modern tile look — no sepia, higher contrast */
-.leaflet-tile-pane {
-  filter: brightness(0.88) contrast(1.18) saturate(0.72) hue-rotate(5deg);
+.leaflet-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 410;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse at 45% 28%, rgba(230, 195, 104, 0.08), transparent 36%),
+    linear-gradient(180deg, rgba(6, 5, 3, 0.24), transparent 20%, transparent 61%, rgba(4, 3, 2, 0.28)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23noise)' opacity='0.10'/%3E%3C/svg%3E");
+  mix-blend-mode: screen;
+  opacity: 0.36;
 }
 
-/* Base tiles get the full filter; label layer stays crisp */
+/* Antique atlas tile treatment */
+.leaflet-tile-pane {
+  filter: brightness(1.22) contrast(1.38) saturate(0.78) sepia(0.44) hue-rotate(348deg);
+}
+
 .map-label-layer {
-  filter: brightness(1.1) contrast(1.1) saturate(0.8) !important;
-  opacity: 0.85 !important;
+  filter: brightness(1.04) contrast(1.12) saturate(0.72) sepia(0.36) !important;
+  opacity: 0.08 !important;
 }
 
 .map-fallback-layer {
-  filter: brightness(0.54) contrast(1.15) saturate(0.32) sepia(0.28) hue-rotate(354deg) !important;
+  filter: brightness(0.58) contrast(1.32) saturate(0.45) sepia(0.48) hue-rotate(350deg) !important;
 }
 
 /* ─── Hide default leaflet tooltip border/bg ────────────────── */
@@ -136,6 +149,11 @@
   padding: 2px 6px !important;
   border-radius: 0 0 6px 6px !important;
   backdrop-filter: blur(8px) !important;
+}
+
+.leaflet-control-zoom,
+.leaflet-control-scale {
+  display: none !important;
 }
 
 /* ─── Custom marker pulse ───────────────────────────────────── */
@@ -365,7 +383,8 @@
 }
 
 .historical-label-marker {
-  display: none;
+  display: block;
+  pointer-events: none;
 }
 
 .historical-map-label {
@@ -375,7 +394,7 @@
   transform: translate(-50%, -50%);
   color: rgba(214, 181, 86, 0.82);
   font-family: 'Cinzel', serif;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.12;
   letter-spacing: 0.14em;
@@ -389,12 +408,12 @@
 }
 
 .historical-map-label.is-major {
-  font-size: 13px;
+  font-size: 18px;
   letter-spacing: 0.15em;
 }
 
 .historical-map-label.is-empire {
-  font-size: 12px;
+  font-size: 16px;
   letter-spacing: 0.18em;
   line-height: 1.22;
   white-space: normal;
@@ -402,7 +421,7 @@
 
 .historical-map-label.is-water {
   color: rgba(181, 150, 72, 0.58);
-  font-size: 10px;
+  font-size: 13px;
   font-style: italic;
   letter-spacing: 0.22em;
   line-height: 1.35;
@@ -410,45 +429,20 @@
 }
 
 @media (max-width: 640px) {
-  .leaflet-container {
-    cursor: grab;
+  .historical-map-label {
+    font-size: 11px;
   }
 
-  .leaflet-container::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 410;
-    pointer-events: none;
-    background-image:
-      radial-gradient(ellipse at 45% 28%, rgba(230, 195, 104, 0.08), transparent 36%),
-      linear-gradient(180deg, rgba(6, 5, 3, 0.24), transparent 20%, transparent 61%, rgba(4, 3, 2, 0.28)),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23noise)' opacity='0.10'/%3E%3C/svg%3E");
-    mix-blend-mode: screen;
-    opacity: 0.36;
+  .historical-map-label.is-major {
+    font-size: 13px;
   }
 
-  .leaflet-tile-pane {
-    filter: brightness(0.96) contrast(1.48) saturate(0.72) sepia(0.46) hue-rotate(348deg);
+  .historical-map-label.is-empire {
+    font-size: 12px;
   }
 
-  .map-label-layer {
-    filter: brightness(1.04) contrast(1.12) saturate(0.72) sepia(0.36) !important;
-    opacity: 0.25 !important;
-  }
-
-  .map-fallback-layer {
-    filter: brightness(0.58) contrast(1.32) saturate(0.45) sepia(0.48) hue-rotate(350deg) !important;
-  }
-
-  .historical-label-marker {
-    display: block;
-    pointer-events: none;
-  }
-
-  .leaflet-control-zoom,
-  .leaflet-control-scale {
-    display: none !important;
+  .historical-map-label.is-water {
+    font-size: 10px;
   }
 
   .leaflet-bottom.leaflet-right {

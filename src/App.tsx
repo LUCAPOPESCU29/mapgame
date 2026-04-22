@@ -1,15 +1,8 @@
 import { lazy, Suspense, useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { List, Map, Search, MessageCircle, Compass, Crown, Scroll } from "lucide-react";
 import { useConversation } from "./hooks/useConversation";
 import { hasApiKey } from "./lib/anthropic";
-import { COUNTRY_REGIONS, getFlagForCountry } from "./data/countryRegions";
-import { Meteors } from "./components/ui/meteors";
-import { DotPattern } from "./components/ui/dot-pattern";
-import { NumberTicker } from "./components/ui/number-ticker";
-import { WordRotate } from "./components/ui/word-rotate";
-import { Marquee } from "./components/ui/marquee";
-import { MagneticButton } from "./components/ui/magnetic-button";
+import { COUNTRY_REGIONS } from "./data/countryRegions";
 import { MapRipple } from "./components/ui/map-ripple";
 
 type ViewMode = "map" | "list";
@@ -18,18 +11,6 @@ type MobileTab = "map" | "timeline" | "chronicles" | "collection" | "profile";
 const MapView = lazy(() => import("./components/MapView").then((module) => ({ default: module.MapView })));
 const SidePanel = lazy(() => import("./components/SidePanel").then((module) => ({ default: module.SidePanel })));
 const Chatbot = lazy(() => import("./components/Chatbot").then((module) => ({ default: module.Chatbot })));
-
-// Cycling historical prompts shown in the hero
-const HERO_PROMPTS = [
-  { era: "Ancient Rome", question: "Why did the greatest empire fall?" },
-  { era: "Viking Age", question: "Who were the raiders of the north?" },
-  { era: "Medieval Crusades", question: "What drove men to holy war?" },
-  { era: "Renaissance Florence", question: "How did art reshape the world?" },
-  { era: "Mongol Empire", question: "How did a steppe tribe conquer the earth?" },
-  { era: "Ottoman Empire", question: "What made Constantinople legendary?" },
-  { era: "Black Death", question: "How did plague transform Europe?" },
-  { era: "Age of Exploration", question: "What lay beyond the edge of the map?" },
-];
 
 const mobileNavItems: { id: MobileTab; label: string }[] = [
   { id: "map", label: "Map" },
@@ -75,17 +56,6 @@ function TiltCard({
     >
       {children}
     </motion.button>
-  );
-}
-
-// Corner ornament SVG
-function CornerOrnament({ className }: { className: string }) {
-  return (
-    <svg className={`w-16 h-16 opacity-20 ${className}`} viewBox="0 0 64 64" fill="none">
-      <path d="M4 4 L4 24 M4 4 L24 4" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M4 4 L18 18" stroke="#C9A84C" strokeWidth="0.8" strokeLinecap="round" strokeDasharray="2 4"/>
-      <circle cx="4" cy="4" r="2.5" fill="#C9A84C"/>
-    </svg>
   );
 }
 
@@ -183,32 +153,32 @@ function MobileAtlasHeader({
 }) {
   return (
     <motion.div
-      className="pointer-events-auto absolute left-3 right-3 top-[max(1.25rem,env(safe-area-inset-top))] z-30 sm:hidden"
+      className="pointer-events-auto absolute left-3 right-3 top-[max(1.25rem,env(safe-area-inset-top))] z-30 md:left-8 md:right-auto md:top-6 md:w-[min(980px,calc(100vw-10rem))]"
       initial={{ opacity: 0, y: -18, filter: "blur(10px)" }}
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       transition={{ duration: 0.85, ease: [0.32, 0.72, 0, 1] }}
     >
-      <div className="rounded-[1.45rem] border border-gold/20 bg-[#0d0c08]/90 p-1 shadow-[0_18px_42px_rgba(0,0,0,0.46),inset_0_1px_1px_rgba(245,232,196,0.08)]">
-        <div className="flex items-center gap-1.5 rounded-[1.12rem] bg-[#11100b]/90 px-2 py-1.5 shadow-[inset_0_1px_0_rgba(245,232,196,0.07)]">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-gold/20 bg-[#17130a] text-gold shadow-[inset_0_1px_1px_rgba(245,232,196,0.08)]">
-            <MobileIcon name="brand" className="h-9 w-9" />
+      <div className="rounded-[1.45rem] border border-gold/20 bg-[#0d0c08]/90 p-1 shadow-[0_18px_42px_rgba(0,0,0,0.46),inset_0_1px_1px_rgba(245,232,196,0.08)] md:rounded-[2rem] md:p-1.5">
+        <div className="flex items-center gap-1.5 rounded-[1.12rem] bg-[#11100b]/90 px-2 py-1.5 shadow-[inset_0_1px_0_rgba(245,232,196,0.07)] md:gap-3 md:rounded-[1.55rem] md:px-3 md:py-2.5">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-gold/20 bg-[#17130a] text-gold shadow-[inset_0_1px_1px_rgba(245,232,196,0.08)] md:h-16 md:w-16 md:rounded-[1.35rem]">
+            <MobileIcon name="brand" className="h-9 w-9 md:h-14 md:w-14" />
           </div>
 
-          <div className="min-w-[5.9rem] flex-shrink-0">
-            <p className="font-cinzel text-[0.9rem] font-bold leading-none tracking-[0.08em] text-gold">Historicus</p>
-            <p className="mt-0.5 font-cinzel text-[0.5rem] uppercase leading-none tracking-[0.14em] text-gold/75">
+          <div className="min-w-[5.9rem] flex-shrink-0 md:min-w-[13rem]">
+            <p className="font-cinzel text-[0.9rem] font-bold leading-none tracking-[0.08em] text-gold md:text-2xl">Historicus</p>
+            <p className="mt-0.5 font-cinzel text-[0.5rem] uppercase leading-none tracking-[0.14em] text-gold/75 md:mt-1 md:text-[0.74rem]">
               Europa Temporis
             </p>
           </div>
 
-          <label className="flex min-w-0 flex-1 items-center gap-1.5 rounded-full border border-gold/20 bg-[#090806]/90 px-2.5 py-2 text-parchment-500 shadow-[inset_0_1px_0_rgba(245,232,196,0.04)]">
-            <MobileIcon name="search" className="h-4 w-4 flex-shrink-0 text-gold/70" />
+          <label className="flex min-w-0 flex-1 items-center gap-1.5 rounded-full border border-gold/20 bg-[#090806]/90 px-2.5 py-2 text-parchment-500 shadow-[inset_0_1px_0_rgba(245,232,196,0.04)] md:gap-3 md:px-5 md:py-3.5">
+            <MobileIcon name="search" className="h-4 w-4 flex-shrink-0 text-gold/70 md:h-6 md:w-6" />
             <input
               value={listSearch}
               onChange={(event) => onSearchChange(event.target.value)}
               onFocus={onOpenSearch}
               placeholder="Search places, events..."
-              className="min-w-0 flex-1 bg-transparent font-garamond text-[0.82rem] text-parchment-200 outline-none placeholder:text-parchment-600"
+              className="min-w-0 flex-1 bg-transparent font-garamond text-[0.82rem] text-parchment-200 outline-none placeholder:text-parchment-600 md:text-xl"
             />
           </label>
 
@@ -216,9 +186,9 @@ function MobileAtlasHeader({
             type="button"
             onClick={onOpenMenu}
             aria-label="Open navigation"
-            className="group flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-gold/20 bg-[#11100a] text-gold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+            className="group flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-gold/20 bg-[#11100a] text-gold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] md:h-16 md:w-16 md:rounded-[1.35rem]"
           >
-            <MobileIcon name="menu" className="h-6 w-6 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-active:scale-95" />
+            <MobileIcon name="menu" className="h-6 w-6 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-active:scale-95 md:h-9 md:w-9" />
           </button>
         </div>
       </div>
@@ -229,13 +199,13 @@ function MobileAtlasHeader({
 function MobileCompassOverlay() {
   return (
     <motion.div
-      className="pointer-events-none absolute left-5 top-[8.8rem] z-20 hidden text-gold min-[360px]:block sm:hidden"
+      className="pointer-events-none absolute left-5 top-[8.8rem] z-20 hidden text-gold min-[360px]:block md:left-12 md:top-[9.75rem]"
       initial={{ opacity: 0, x: -18, filter: "blur(8px)" }}
       animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
       transition={{ duration: 0.9, delay: 0.18, ease: [0.32, 0.72, 0, 1] }}
     >
-      <div className="relative flex h-28 w-28 items-center justify-center opacity-80">
-        <svg viewBox="0 0 112 112" className="h-28 w-28" aria-hidden="true" fill="none">
+      <div className="relative flex h-28 w-28 items-center justify-center opacity-80 md:h-36 md:w-36">
+        <svg viewBox="0 0 112 112" className="h-28 w-28 md:h-36 md:w-36" aria-hidden="true" fill="none">
           <circle cx="56" cy="56" r="29" stroke="currentColor" strokeWidth="0.8" opacity=".22" />
           <path d="M56 9 62.5 51.5 103 56 62.5 60.5 56 103 49.5 60.5 9 56 49.5 51.5 56 9Z" stroke="currentColor" strokeWidth="0.9" opacity=".45" />
           <path d="M56 22 60.1 52 90 56 60.1 60 56 90 51.9 60 22 56 51.9 52 56 22Z" fill="currentColor" opacity=".18" />
@@ -243,8 +213,8 @@ function MobileCompassOverlay() {
           <text x="56" y="16" textAnchor="middle" className="fill-current font-cinzel text-[10px] font-bold">N</text>
         </svg>
       </div>
-      <div className="-mt-1 ml-1 flex w-24 flex-col items-center gap-1">
-        <p className="font-cinzel text-sm tracking-[0.12em] text-gold">500 km</p>
+      <div className="-mt-1 ml-1 flex w-24 flex-col items-center gap-1 md:w-32">
+        <p className="font-cinzel text-sm tracking-[0.12em] text-gold md:text-base">500 km</p>
         <div className="h-px w-full bg-gold/70" />
       </div>
     </motion.div>
@@ -260,15 +230,15 @@ function MobileBottomNavigation({
 }) {
   return (
     <motion.nav
-      className="pointer-events-auto absolute inset-x-0 bottom-[5.95rem] z-30 sm:hidden"
+      className="pointer-events-auto absolute inset-x-0 bottom-[5.95rem] z-30 md:bottom-[6.1rem]"
       initial={{ opacity: 0, y: 28, filter: "blur(10px)" }}
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       transition={{ duration: 0.95, delay: 0.22, ease: [0.32, 0.72, 0, 1] }}
       aria-label="Mobile atlas navigation"
     >
       <div className="relative border-y border-gold/15 bg-[#0b0a07]/95 shadow-[0_-22px_55px_rgba(0,0,0,0.56),inset_0_1px_0_rgba(245,232,196,0.04)]">
-        <div className="absolute left-1/2 top-0 h-8 w-32 -translate-x-1/2 -translate-y-[58%] rounded-t-[3rem] border-x border-t border-gold/15 bg-[#0b0a07]/95" />
-        <div className="relative mx-auto grid h-[4.25rem] max-w-[30rem] grid-cols-5 px-2 pt-2">
+        <div className="absolute left-1/2 top-0 h-8 w-32 -translate-x-1/2 -translate-y-[58%] rounded-t-[3rem] border-x border-t border-gold/15 bg-[#0b0a07]/95 md:h-10 md:w-44" />
+        <div className="relative mx-auto grid h-[4.25rem] max-w-[30rem] grid-cols-5 px-2 pt-2 md:h-[6.1rem] md:max-w-[920px] md:px-7 md:pt-3">
           {mobileNavItems.map((item) => {
             const selected = active === item.id;
             return (
@@ -276,14 +246,14 @@ function MobileBottomNavigation({
                 key={item.id}
                 type="button"
                 onClick={() => onChange(item.id)}
-                className={`group mx-auto flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-gold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${
+                className={`group mx-auto flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-gold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] md:gap-2 md:rounded-[1.35rem] md:px-4 ${
                   selected
                     ? "w-full border border-gold/25 bg-gold/10 shadow-[inset_0_1px_0_rgba(245,232,196,0.07)]"
                     : "w-full text-gold/70"
                 }`}
               >
-                <MobileIcon name={item.id} className={`h-5 w-5 ${selected ? "text-gold" : "text-gold/70"}`} />
-                <span className="w-full truncate text-center font-cinzel text-[0.48rem] uppercase tracking-[0.06em]">{item.label}</span>
+                <MobileIcon name={item.id} className={`h-5 w-5 md:h-7 md:w-7 ${selected ? "text-gold" : "text-gold/70"}`} />
+                <span className="w-full truncate text-center font-cinzel text-[0.48rem] uppercase tracking-[0.06em] md:text-[0.68rem] md:tracking-[0.14em]">{item.label}</span>
               </button>
             );
           })}
@@ -295,29 +265,31 @@ function MobileBottomNavigation({
 
 function MobileChatDock({ onOpen }: { onOpen: () => void }) {
   return (
-    <motion.button
-      type="button"
-      onClick={onOpen}
-      className="pointer-events-auto absolute inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 rounded-[1.7rem] border border-gold/25 bg-[#0c0b08]/95 p-1 text-left shadow-[0_-12px_44px_rgba(0,0,0,0.58),inset_0_1px_1px_rgba(245,232,196,0.06)] sm:hidden"
-      initial={{ opacity: 0, y: 34, filter: "blur(10px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      transition={{ duration: 1, delay: 0.32, ease: [0.32, 0.72, 0, 1] }}
-      whileTap={{ scale: 0.985 }}
-    >
-      <div className="flex h-16 items-center gap-1.5 rounded-[1.45rem] border border-gold/10 bg-[#11100c] px-2 shadow-[inset_0_1px_0_rgba(245,232,196,0.05)]">
-        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-gold/15 bg-[#090806] text-gold shadow-[inset_0_1px_0_rgba(245,232,196,0.05)]">
-          <MobileIcon name="chronicles" className="h-6 w-6" />
+    <div className="pointer-events-auto absolute inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 md:inset-x-auto md:left-1/2 md:w-[min(760px,calc(100vw-3rem))] md:-translate-x-1/2">
+      <motion.button
+        type="button"
+        onClick={onOpen}
+        className="w-full rounded-[1.7rem] border border-gold/25 bg-[#0c0b08]/95 p-1 text-left shadow-[0_-12px_44px_rgba(0,0,0,0.58),inset_0_1px_1px_rgba(245,232,196,0.06)] md:rounded-[2rem] md:p-1.5"
+        initial={{ opacity: 0, y: 34, filter: "blur(10px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 1, delay: 0.32, ease: [0.32, 0.72, 0, 1] }}
+        whileTap={{ scale: 0.985 }}
+      >
+        <div className="flex h-16 items-center gap-1.5 rounded-[1.45rem] border border-gold/10 bg-[#11100c] px-2 shadow-[inset_0_1px_0_rgba(245,232,196,0.05)] md:h-[4.85rem] md:gap-3 md:rounded-[1.55rem] md:px-3">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-gold/15 bg-[#090806] text-gold shadow-[inset_0_1px_0_rgba(245,232,196,0.05)] md:h-14 md:w-14">
+            <MobileIcon name="chronicles" className="h-6 w-6 md:h-7 md:w-7" />
+          </div>
+          <div className="flex min-w-0 flex-1 items-center rounded-full bg-[#080705] px-3 py-3 md:px-6 md:py-4">
+            <span className="truncate font-garamond text-[0.92rem] font-semibold text-parchment-600 md:text-xl">
+              Ask anything about history...
+            </span>
+          </div>
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gold text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] md:h-14 md:w-14">
+            <MobileIcon name="send" className="h-6 w-6 md:h-7 md:w-7" />
+          </div>
         </div>
-        <div className="flex min-w-0 flex-1 items-center rounded-full bg-[#080705] px-3 py-3">
-          <span className="truncate font-garamond text-[0.92rem] font-semibold text-parchment-600">
-            Ask anything about history...
-          </span>
-        </div>
-        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gold text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
-          <MobileIcon name="send" className="h-6 w-6" />
-        </div>
-      </div>
-    </motion.button>
+      </motion.button>
+    </div>
   );
 }
 
@@ -361,25 +333,10 @@ export default function App() {
   const [viewMode, setViewMode] = useState<ViewMode>("map");
   const [listSearch, setListSearch] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
-  const [promptIdx, setPromptIdx] = useState(0);
-  const [promptVisible, setPromptVisible] = useState(true);
   const [mobileTab, setMobileTab] = useState<MobileTab>("map");
   const isDesktop = useMediaQuery("(min-width: 768px)", true);
-  const isPhone = !isDesktop;
 
   const { streamState, ask, followUp, reset, hasHistory } = useConversation();
-
-  // Cycle hero prompts
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setPromptVisible(false);
-      setTimeout(() => {
-        setPromptIdx((i) => (i + 1) % HERO_PROMPTS.length);
-        setPromptVisible(true);
-      }, 500);
-    }, 3500);
-    return () => clearInterval(timer);
-  }, []);
 
   const handleCountryClick = useCallback(async (country: string) => {
     reset();
@@ -428,42 +385,6 @@ export default function App() {
   return (
     <main className="relative h-[100dvh] min-h-[100dvh] w-full max-w-full overflow-hidden bg-ink">
 
-      {/* ── Deep background: meteors + dots + aurora ──────── */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="hidden sm:block">
-          <Meteors count={18} />
-        </div>
-        <DotPattern className="opacity-20 sm:opacity-30" />
-
-        {/* Primary aurora — top center */}
-        <motion.div className="absolute" style={{
-          width: "80vw", height: "55vh", top: "-20%", left: "10%",
-          background: "radial-gradient(ellipse, rgba(201,168,76,0.06) 0%, rgba(201,168,76,0.02) 45%, transparent 70%)",
-          filter: "blur(70px)",
-        }}
-          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5], x: [0, 40, 0] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-        />
-        {/* Secondary aurora — bottom right */}
-        <motion.div className="absolute" style={{
-          width: "55vw", height: "45vh", bottom: "-15%", right: "-5%",
-          background: "radial-gradient(ellipse, rgba(140,70,20,0.07) 0%, transparent 70%)",
-          filter: "blur(90px)",
-        }}
-          animate={{ scale: [1, 1.25, 1], opacity: [0.3, 0.7, 0.3] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 5 }}
-        />
-        {/* Tertiary aurora — left */}
-        <motion.div className="absolute" style={{
-          width: "35vw", height: "60vh", top: "20%", left: "-10%",
-          background: "radial-gradient(ellipse, rgba(100,50,10,0.05) 0%, transparent 70%)",
-          filter: "blur(80px)",
-        }}
-          animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.8, 0.4] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 8 }}
-        />
-      </div>
-
       {/* ── Map ───────────────────────────────────────────── */}
       <motion.div
         className="absolute inset-0 z-0"
@@ -484,25 +405,11 @@ export default function App() {
 
       {/* ── Vignette — stronger edges ─────────────────────── */}
       <div className="absolute inset-0 z-10 pointer-events-none hidden sm:block" style={{
-        background: "radial-gradient(ellipse at center, transparent 35%, rgba(13,10,6,0.55) 70%, rgba(13,10,6,0.85) 100%)"
+        background: "radial-gradient(ellipse at center, transparent 46%, rgba(13,10,6,0.28) 76%, rgba(13,10,6,0.58) 100%)"
       }} />
       <div className="absolute inset-0 z-10 pointer-events-none sm:hidden" style={{
         background: "linear-gradient(180deg, rgba(13,10,6,0.48) 0%, transparent 20%, transparent 58%, rgba(13,10,6,0.62) 100%)"
       }} />
-
-      {/* ── Map corner ornaments ───────────────────────────── */}
-      <div className="absolute inset-0 z-10 pointer-events-none hidden sm:block">
-        <CornerOrnament className="absolute top-14 left-2" />
-        <div style={{ transform: "scaleX(-1)" }} className="absolute top-14 right-2">
-          <CornerOrnament className="" />
-        </div>
-        <div style={{ transform: "scaleY(-1)" }} className="absolute bottom-2 left-2">
-          <CornerOrnament className="" />
-        </div>
-        <div style={{ transform: "scale(-1)" }} className="absolute bottom-2 right-2">
-          <CornerOrnament className="" />
-        </div>
-      </div>
 
       <MobileAtlasHeader
         listSearch={listSearch}
@@ -517,231 +424,6 @@ export default function App() {
         }}
       />
       <MobileCompassOverlay />
-
-      {/* ── Header — full glassmorphism bar ───────────────── */}
-      <motion.header
-        className="pointer-events-none absolute left-0 right-0 top-0 z-20 hidden sm:block"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
-      >
-        {/* Glass bar background */}
-        <div className="absolute inset-0"
-          style={{
-            background: "linear-gradient(180deg, rgba(13,10,6,0.92) 0%, rgba(13,10,6,0.7) 70%, transparent 100%)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-          }}
-        />
-        {/* Bottom separator */}
-        <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-gold/25 to-transparent" />
-
-        <div className="relative flex items-center gap-3 px-3.5 py-3 sm:gap-4 sm:px-5 sm:py-3.5">
-          {/* Logo + title */}
-          <div className="flex min-w-0 flex-shrink items-center gap-2.5 sm:gap-3">
-            <div className="relative h-8 w-8 flex-shrink-0 sm:h-9 sm:w-9">
-              <motion.div
-                className="absolute inset-0 rounded-full"
-                style={{ background: "radial-gradient(circle, rgba(201,168,76,0.3) 0%, transparent 70%)" }}
-                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-                transition={{ duration: 2.5, repeat: Infinity }}
-              />
-              <img src="/favicon.svg" alt="logo" className="relative h-8 w-8 drop-shadow-[0_0_8px_rgba(201,168,76,0.7)] sm:h-9 sm:w-9" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="truncate font-cinzel text-[15px] font-bold leading-none tracking-[0.12em] sm:text-xl sm:tracking-wide">
-                <span className="gradient-text">{isPhone ? "Historicus" : "The Emperor's Map"}</span>
-              </h1>
-              <p className="mt-0.5 hidden font-garamond text-[10px] italic leading-none tracking-wide text-parchment-600 min-[380px]:block">
-                {countryCount} nations ·{" "}
-                <WordRotate
-                  words={["Empires", "Kingdoms", "Civilizations", "Dynasties", "Chronicles"]}
-                  className="text-gold/70 inline"
-                  interval={2500}
-                />{" "}
-                · powered by AI
-              </p>
-            </div>
-          </div>
-
-          <div className="min-w-1 flex-1" />
-
-          {/* Stats badge */}
-          <motion.div
-            className="pointer-events-none hidden sm:flex items-center gap-4 px-4 py-2 rounded-full border border-gold/10 bg-white/[0.03]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-          >
-            <div className="flex items-center gap-1.5">
-              <Crown className="w-3 h-3 text-gold/50" />
-              <NumberTicker value={countryCount} suffix=" Countries" className="font-cinzel text-[10px] text-parchment-600" />
-            </div>
-            <div className="w-px h-3 bg-gold/15" />
-            <div className="flex items-center gap-1.5">
-              <Compass className="w-3 h-3 text-gold/50" />
-              <span className="font-cinzel text-[10px] text-parchment-600">All Eras</span>
-            </div>
-            <div className="w-px h-3 bg-gold/15" />
-            <div className="flex items-center gap-1.5">
-              <Scroll className="w-3 h-3 text-gold/50" />
-              <span className="font-cinzel text-[10px] text-parchment-600">AI Chronicles</span>
-            </div>
-          </motion.div>
-
-          {/* View toggle */}
-          <div className="pointer-events-auto flex flex-shrink-0 items-center gap-1 rounded-full border border-gold/15 bg-white/[0.04] px-1.5 py-1 backdrop-blur-md">
-            <button
-              onClick={() => setViewMode("map")}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all text-[10px] font-cinzel ${viewMode === "map" ? "text-gold bg-gold/15 shadow-[0_0_8px_rgba(201,168,76,0.2)]" : "text-parchment-500 hover:text-gold"}`}
-            >
-              <Map className="w-3.5 h-3.5" />
-              <span className="hidden min-[390px]:block">Map</span>
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all text-[10px] font-cinzel ${viewMode === "list" ? "text-gold bg-gold/15 shadow-[0_0_8px_rgba(201,168,76,0.2)]" : "text-parchment-500 hover:text-gold"}`}
-            >
-              <List className="w-3.5 h-3.5" />
-              <span className="hidden min-[390px]:block">Browse</span>
-            </button>
-          </div>
-        </div>
-      </motion.header>
-
-      {/* ── Hero overlay — shown when map is idle ─────────── */}
-      <AnimatePresence>
-        {isDesktop && !panelOpen && viewMode === "map" && (
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ delay: 0.8 }}
-          >
-            {/* Bottom gradient fade */}
-            <div className="absolute bottom-0 inset-x-0 h-56 pointer-events-none"
-              style={{ background: "linear-gradient(to top, rgba(13,10,6,0.75) 0%, transparent 100%)" }}
-            />
-
-            {/* Hero content — centered at bottom */}
-            <div className="relative flex flex-col items-center gap-4 pb-10 pt-4">
-
-              {/* Cycling question */}
-              <motion.div
-                className="hidden flex-col items-center gap-2 sm:flex"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 1 }}
-              >
-                <AnimatePresence mode="wait">
-                  {promptVisible && (
-                    <motion.div
-                      key={promptIdx}
-                      className="flex flex-col items-center gap-1.5"
-                      initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
-                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                      exit={{ opacity: 0, y: -10, filter: "blur(8px)" }}
-                      transition={{ duration: 0.45 }}
-                    >
-                      <span className="font-cinzel text-[10px] uppercase tracking-[0.25em] text-gold/60">
-                        {HERO_PROMPTS[promptIdx].era}
-                      </span>
-                      <span className="font-garamond text-lg italic text-parchment-300 text-center max-w-xs">
-                        "{HERO_PROMPTS[promptIdx].question}"
-                      </span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-
-              {/* CTA pill */}
-              <motion.div
-                className="relative flex max-w-[calc(100vw-2rem)] items-center gap-2 overflow-hidden rounded-2xl border border-gold/25 bg-ink/75 px-4 py-3 backdrop-blur-md sm:gap-3 sm:rounded-full sm:px-6"
-                style={{ boxShadow: "0 0 30px rgba(201,168,76,0.08), inset 0 0 20px rgba(201,168,76,0.03)" }}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.4 }}
-              >
-                {/* Shine sweep */}
-                <div className="absolute inset-0 beam-gradient pointer-events-none" />
-                {/* Pulsing dot */}
-                <motion.div
-                  className="w-2 h-2 rounded-full bg-gold flex-shrink-0"
-                  style={{ boxShadow: "0 0 8px 2px rgba(201,168,76,0.5)" }}
-                  animate={{ scale: [1, 1.6, 1], opacity: [1, 0.4, 1] }}
-                  transition={{ duration: 2.2, repeat: Infinity }}
-                />
-                <span className="font-cinzel text-xs text-parchment-300 tracking-wider">
-                  {isPhone ? "Tap the map to begin" : "Click anywhere on the map to begin"}
-                </span>
-                <div className="hidden h-3 w-px flex-shrink-0 bg-gold/20 min-[380px]:block" />
-                <span className="hidden font-garamond text-xs italic text-parchment-600 min-[380px]:block">or browse nations</span>
-              </motion.div>
-
-              {/* Dots row under CTA */}
-              <motion.div
-                className="flex items-center gap-1.5"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.8 }}
-              >
-                {HERO_PROMPTS.map((_, i) => (
-                  <div
-                    key={i}
-                    className="rounded-full transition-all duration-500"
-                    style={{
-                      width: i === promptIdx ? 16 : 4,
-                      height: 4,
-                      background: i === promptIdx ? "#C9A84C" : "rgba(201,168,76,0.25)",
-                    }}
-                  />
-                ))}
-              </motion.div>
-
-              {/* Marquee — atmospheric historical ticker */}
-              <motion.div
-                className="absolute bottom-0 left-0 right-0 z-20 overflow-hidden pointer-events-none"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 2.2 }}
-              >
-                <Marquee
-                  className="font-cinzel text-xs text-gold/70 tracking-[0.2em] py-2 border-t border-gold/15"
-                  speed={22}
-                  pauseOnHover={true}
-                  direction="left"
-                >
-                  <span className="px-4">Roman Empire</span>
-                  <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">Viking Age</span>
-                  <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">Ottoman Empire</span>
-                  <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">Mongol Conquest</span>
-                  <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">Crusades</span>
-                  <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">Renaissance</span>
-                  <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">Age of Sail</span>
-                  <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">Medieval Kingdoms</span>
-                  <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">Silk Road</span>
-                  <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">Age of Exploration</span>
-                  <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">Byzantine Court</span>
-                  <span className="text-gold/30 px-1">·</span>
-                  <span className="px-4">Aztec Empire</span>
-                  <span className="text-gold/30 px-1">·</span>
-                </Marquee>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ── Geocoding spinner ─────────────────────────────── */}
       <AnimatePresence>
@@ -798,7 +480,6 @@ export default function App() {
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px]"
                 style={{ background: "radial-gradient(ellipse, rgba(201,168,76,0.04) 0%, transparent 70%)", filter: "blur(40px)" }}
               />
-              <DotPattern className="opacity-20" />
             </div>
 
             {/* List header */}
@@ -815,7 +496,7 @@ export default function App() {
 
               {/* Search */}
               <div className="order-3 flex w-full items-center gap-2 rounded-full border border-gold/20 bg-white/[0.04] px-3 py-2 sm:order-none sm:w-auto">
-                <Search className="w-3.5 h-3.5 text-gold/50" />
+                <MobileIcon name="search" className="h-3.5 w-3.5 text-gold/50" />
                 <input
                   autoFocus
                   value={listSearch}
@@ -832,7 +513,7 @@ export default function App() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
-                <Map className="w-3.5 h-3.5" /> Map
+                <MobileIcon name="map" className="h-3.5 w-3.5" /> Map
               </motion.button>
             </div>
 
@@ -840,7 +521,6 @@ export default function App() {
             <div className="relative h-[calc(100%-142px)] overflow-y-auto p-4 sm:h-[calc(100%-88px)]">
               <div className="grid grid-cols-1 gap-2 min-[390px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {filteredCountries.map((country, i) => {
-                  const flag = getFlagForCountry(country);
                   const isSelected = selectedCountry === country;
                   return (
                     <motion.div
@@ -857,7 +537,9 @@ export default function App() {
                             : "border-white/[0.06] bg-white/[0.02] hover:border-gold/30 hover:bg-gold/10 hover:shadow-[0_0_12px_rgba(201,168,76,0.1)]"
                         }`}
                       >
-                        <span className="text-xl flex-shrink-0">{flag}</span>
+                        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-gold/20 bg-gold/10 font-cinzel text-sm text-gold">
+                          {country.slice(0, 1)}
+                        </span>
                         <span className={`font-cinzel text-xs leading-tight transition-colors ${
                           isSelected ? "text-gold" : "text-parchment-300 group-hover:text-gold"
                         }`}>
@@ -889,52 +571,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* ── Floating chat button ─────────────────────────── */}
-      <AnimatePresence>
-        {!chatOpen && (
-          <motion.button
-            className="fixed bottom-6 right-6 z-50 hidden items-center justify-center gap-2.5 overflow-hidden rounded-full border border-gold/30 bg-ink/95 px-5 py-3.5 backdrop-blur-xl sm:flex"
-            style={{ boxShadow: "0 0 0 1px rgba(201,168,76,0.08), 0 8px 32px rgba(0,0,0,0.6), 0 0 20px rgba(201,168,76,0.08)" }}
-            onClick={() => setChatOpen(true)}
-            initial={{ scale: 0, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0, opacity: 0, y: 20 }}
-            transition={{ type: "spring", stiffness: 260, damping: 22, delay: 1 }}
-            whileHover={{ scale: 1.05, boxShadow: "0 0 0 1px rgba(201,168,76,0.2), 0 8px 32px rgba(0,0,0,0.6), 0 0 30px rgba(201,168,76,0.18)" }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {/* Rotating border glow */}
-            <div className="absolute inset-0 rounded-full pointer-events-none opacity-40"
-              style={{
-                background: "conic-gradient(from var(--angle, 0deg), transparent 0%, rgba(201,168,76,0.5) 20%, transparent 40%)",
-                animation: "border-spin 6s linear infinite",
-              }}
-            />
-            {/* Beam sweep */}
-            <div className="absolute inset-0 beam-gradient pointer-events-none" />
-
-            <MagneticButton strength={0.7}>
-              <div className="relative flex items-center gap-2.5">
-                <div className="relative">
-                  <div className="w-8 h-8 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
-                    <MessageCircle className="w-4 h-4 text-gold" />
-                  </div>
-                  <motion.div
-                    className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-gold border-2 border-ink"
-                    animate={{ scale: [1, 1.3, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                </div>
-                <div className="text-left">
-                  <p className="font-cinzel text-xs font-bold text-gold leading-tight">Ask Historicus</p>
-                  <p className="font-garamond text-[10px] text-parchment-600 italic leading-tight">AI historian</p>
-                </div>
-              </div>
-            </MagneticButton>
-          </motion.button>
-        )}
-      </AnimatePresence>
-
       <AnimatePresence>
         {!chatOpen && viewMode === "map" && (
           <>
@@ -951,26 +587,6 @@ export default function App() {
       <Suspense fallback={null}>
         <Chatbot open={chatOpen} onClose={() => setChatOpen(false)} />
       </Suspense>
-
-      {/* ── Ambient floating particles ────────────────────── */}
-      <div className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden sm:block">
-        {[...Array(8)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full"
-            style={{
-              left: `${8 + i * 12}%`,
-              top: `${15 + (i % 4) * 20}%`,
-              width: i % 3 === 0 ? 3 : 2,
-              height: i % 3 === 0 ? 3 : 2,
-              background: "#C9A84C",
-              boxShadow: "0 0 6px 2px rgba(201,168,76,0.15)",
-            }}
-            animate={{ opacity: [0, 0.5, 0], scale: [0, 4, 0], y: [0, -30, 0] }}
-            transition={{ duration: 6 + i * 0.7, repeat: Infinity, delay: i * 1.1, ease: "easeOut" }}
-          />
-        ))}
-      </div>
     </main>
   );
 }

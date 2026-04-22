@@ -160,7 +160,7 @@ function GeocodingOverlay({ active }: { active: boolean }) {
   const map = useMap();
   useEffect(() => {
     // Keep cursor hidden (none) so our CustomCursor shows; use wait during geocoding
-    map.getContainer().style.cursor = active ? "wait" : "crosshair";
+    map.getContainer().style.cursor = active ? "wait" : "grab";
   }, [map, active]);
   return null;
 }
@@ -243,14 +243,17 @@ function MapControlIcon({ name }: { name: "target" | "layers" }) {
 
 function MobileMapControls({ map }: { map: L.Map | null }) {
   const controlClass = "flex h-14 w-14 items-center justify-center text-gold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.96]";
+  const resetMap = () => {
+    map?.flyTo([51, 10], 4, { duration: 0.75 });
+  };
 
   return (
-    <div className="pointer-events-auto absolute right-3 top-[36%] z-[460] -translate-y-1/2 overflow-hidden rounded-[1.45rem] border border-gold/20 bg-[#0b0a07]/90 shadow-[0_18px_38px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(245,232,196,0.06)] sm:hidden">
+    <div className="pointer-events-auto absolute right-3 top-[36%] z-[460] -translate-y-1/2 overflow-hidden rounded-[1.45rem] border border-gold/20 bg-[#0b0a07]/90 shadow-[0_18px_38px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(245,232,196,0.06)] md:right-8 md:top-1/2">
       <button
         type="button"
         aria-label="Reset map"
         className={controlClass}
-        onClick={() => map?.flyTo([51, 10], 4, { duration: 0.75 })}
+        onClick={resetMap}
       >
         <MapControlIcon name="target" />
       </button>
@@ -282,7 +285,7 @@ function MapStatusOverlay({
   if (!loading && !fallback && !failed) return null;
 
   return (
-    <div className="pointer-events-none absolute inset-x-4 bottom-[10.9rem] z-[450] flex justify-center sm:bottom-auto sm:top-20">
+    <div className="pointer-events-none absolute inset-x-4 bottom-[10.9rem] z-[450] flex justify-center md:bottom-[11.75rem]">
       <div className={`max-w-[320px] rounded-[1.55rem] border p-1.5 text-center shadow-[0_18px_42px_rgba(0,0,0,0.48),inset_0_1px_1px_rgba(245,232,196,0.08)] ${
         failed
           ? "border-red-400/25 bg-red-950/60"
@@ -322,9 +325,8 @@ export function MapView({ onCountryClick, isGeocoding }: MapViewProps) {
 
   const useFallbackTiles = tileErrorCount >= 4 && !tilesLoaded;
   const hasMapFailed = tileErrorCount >= 10 && !tilesLoaded;
-  const isCompactViewport = typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
-  const initialCenter: [number, number] = isCompactViewport ? [50.8, 10.3] : [45, 15];
-  const initialZoom = isCompactViewport ? 4 : 3;
+  const initialCenter: [number, number] = [50.8, 10.3];
+  const initialZoom = 4;
 
   const handleCountryClick = useCallback(
     (country: string, lat: number, lng: number) => {
