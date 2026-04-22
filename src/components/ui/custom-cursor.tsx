@@ -18,29 +18,13 @@ export function CustomCursor({ containerRef }: CustomCursorProps) {
     const el = containerRef.current;
     if (!el) return;
 
-    // Hide default cursor on container
     el.style.cursor = "none";
 
-    function onMove(e: MouseEvent) {
-      rawX.set(e.clientX);
-      rawY.set(e.clientY);
-    }
-
-    function onEnter() {
-      setVisible(true);
-    }
-
-    function onLeave() {
-      setVisible(false);
-    }
-
-    function onDown() {
-      setClicking(true);
-    }
-
-    function onUp() {
-      setClicking(false);
-    }
+    const onMove = (e: MouseEvent) => { rawX.set(e.clientX); rawY.set(e.clientY); };
+    const onEnter = () => setVisible(true);
+    const onLeave = () => setVisible(false);
+    const onDown = () => setClicking(true);
+    const onUp = () => setClicking(false);
 
     el.addEventListener("mousemove", onMove);
     el.addEventListener("mouseenter", onEnter);
@@ -63,35 +47,40 @@ export function CustomCursor({ containerRef }: CustomCursorProps) {
       {visible && (
         <motion.div
           style={{
-            x,
-            y,
+            x, y,
             position: "fixed",
-            top: 0,
-            left: 0,
+            top: 0, left: 0,
             translateX: "-50%",
             translateY: "-50%",
             pointerEvents: "none",
             zIndex: 9999,
+            filter: "drop-shadow(0 0 6px rgba(201,168,76,0.8))",
           }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, scale: clicking ? 1.5 : 1 }}
-          exit={{ opacity: 0 }}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: clicking ? 0.75 : 1 }}
+          exit={{ opacity: 0, scale: 0.5 }}
           transition={{ scale: { type: "spring", stiffness: 400, damping: 20 } }}
         >
-          {/* Main ring */}
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Circle */}
-            <circle cx="10" cy="10" r="8" stroke="#C9A84C" strokeWidth="1" />
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            {/* Outer ring */}
+            <circle cx="20" cy="20" r="16" stroke="#C9A84C" strokeWidth="1.5" strokeOpacity="0.8"/>
+            {/* Inner ring */}
+            <circle cx="20" cy="20" r="4" stroke="#C9A84C" strokeWidth="1" strokeOpacity="0.6"/>
             {/* Center dot */}
-            <circle cx="10" cy="10" r="1.5" fill="#C9A84C" />
-            {/* N tick */}
-            <line x1="10" y1="1" x2="10" y2="4" stroke="#C9A84C" strokeWidth="1" strokeLinecap="round" />
+            <circle cx="20" cy="20" r="1.5" fill="#C9A84C"/>
+            {/* N tick — long */}
+            <line x1="20" y1="2" x2="20" y2="8" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round"/>
             {/* S tick */}
-            <line x1="10" y1="16" x2="10" y2="19" stroke="#C9A84C" strokeWidth="1" strokeLinecap="round" />
+            <line x1="20" y1="32" x2="20" y2="38" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round"/>
             {/* E tick */}
-            <line x1="16" y1="10" x2="19" y2="10" stroke="#C9A84C" strokeWidth="1" strokeLinecap="round" />
+            <line x1="32" y1="20" x2="38" y2="20" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round"/>
             {/* W tick */}
-            <line x1="1" y1="10" x2="4" y2="10" stroke="#C9A84C" strokeWidth="1" strokeLinecap="round" />
+            <line x1="2" y1="20" x2="8" y2="20" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round"/>
+            {/* Diagonal tick marks (smaller) */}
+            <line x1="31" y1="9" x2="28.5" y2="11.5" stroke="#C9A84C" strokeWidth="0.8" strokeOpacity="0.4" strokeLinecap="round"/>
+            <line x1="9" y1="9" x2="11.5" y2="11.5" stroke="#C9A84C" strokeWidth="0.8" strokeOpacity="0.4" strokeLinecap="round"/>
+            <line x1="31" y1="31" x2="28.5" y2="28.5" stroke="#C9A84C" strokeWidth="0.8" strokeOpacity="0.4" strokeLinecap="round"/>
+            <line x1="9" y1="31" x2="11.5" y2="28.5" stroke="#C9A84C" strokeWidth="0.8" strokeOpacity="0.4" strokeLinecap="round"/>
           </svg>
         </motion.div>
       )}

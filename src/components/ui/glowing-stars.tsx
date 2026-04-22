@@ -7,22 +7,31 @@ interface Star {
   top: string;
   size: number;
   color: string;
+  glowColor: string;
+  glowSize: number;
   delay: number;
   duration: number;
 }
 
-export function GlowingStars() {
+export function GlowingStars({ count = 70 }: { count?: number }) {
   const stars = useMemo<Star[]>(() => {
-    return Array.from({ length: 50 }, (_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      size: 1 + Math.random() * 2,
-      color: i % 7 === 0 ? "#C9A84C" : i % 5 === 0 ? "#e2c97e" : "#f5e8c4",
-      delay: Math.random() * 4,
-      duration: 2 + Math.random() * 4,
-    }));
-  }, []);
+    return Array.from({ length: count }, (_, i) => {
+      const isGold = i % 5 === 0;
+      const isBright = i % 8 === 0;
+      const size = isBright ? 3 + Math.random() * 2 : 1.5 + Math.random() * 2;
+      return {
+        id: i,
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        size,
+        color: isGold ? "#C9A84C" : isBright ? "#e2c97e" : "#f5e8c4",
+        glowColor: isGold ? "rgba(201,168,76,0.9)" : "rgba(245,232,196,0.5)",
+        glowSize: isBright ? size * 6 : size * 3,
+        delay: Math.random() * 5,
+        duration: 1.5 + Math.random() * 3.5,
+      };
+    });
+  }, [count]);
 
   return (
     <div className="absolute inset-0 pointer-events-none">
@@ -36,14 +45,11 @@ export function GlowingStars() {
             width: star.size,
             height: star.size,
             background: star.color,
-            boxShadow:
-              star.color === "#C9A84C"
-                ? `0 0 ${star.size * 3}px ${star.size}px rgba(201,168,76,0.6)`
-                : `0 0 ${star.size * 2}px ${star.size * 0.5}px rgba(245,232,196,0.3)`,
+            boxShadow: `0 0 ${star.glowSize}px ${star.glowSize / 2}px ${star.glowColor}`,
           }}
           animate={{
-            opacity: [0, 1, 0],
-            scale: [0.5, 1.2, 0.5],
+            opacity: [0, 1, 0.3, 1, 0],
+            scale: [0.5, 1.4, 0.8, 1.2, 0.5],
           }}
           transition={{
             duration: star.duration,

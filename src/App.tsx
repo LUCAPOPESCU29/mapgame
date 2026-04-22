@@ -167,6 +167,10 @@ export default function App() {
           animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.8, 0.4] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 8 }}
         />
+      </div>
+
+      {/* ── Glowing stars — above map at z-15 ────────────── */}
+      <div className="absolute inset-0 z-[15] pointer-events-none overflow-hidden">
         <GlowingStars />
       </div>
 
@@ -394,12 +398,35 @@ export default function App() {
                 transition={{ delay: 2.2 }}
               >
                 <Marquee
-                  className="font-cinzel text-[10px] text-gold/30 tracking-widest py-1"
-                  speed={18}
-                  pauseOnHover={false}
+                  className="font-cinzel text-xs text-gold/70 tracking-[0.2em] py-2 border-t border-gold/15"
+                  speed={22}
+                  pauseOnHover={true}
                   direction="left"
                 >
-                  Roman Empire · Viking Age · Ottoman Empire · Mongol Conquest · Byzantine Court · Crusades · Renaissance · Age of Sail · Medieval Kingdoms · Silk Road · Phoenician Trade · Aztec Empire · Persian Wars · Macedonian Empire · Napoleonic Wars · Age of Exploration ·&nbsp;
+                  <span className="px-4">⚔ Roman Empire</span>
+                  <span className="text-gold/30 px-1">·</span>
+                  <span className="px-4">🛡 Viking Age</span>
+                  <span className="text-gold/30 px-1">·</span>
+                  <span className="px-4">☪ Ottoman Empire</span>
+                  <span className="text-gold/30 px-1">·</span>
+                  <span className="px-4">🏹 Mongol Conquest</span>
+                  <span className="text-gold/30 px-1">·</span>
+                  <span className="px-4">✝ Crusades</span>
+                  <span className="text-gold/30 px-1">·</span>
+                  <span className="px-4">🎨 Renaissance</span>
+                  <span className="text-gold/30 px-1">·</span>
+                  <span className="px-4">⛵ Age of Sail</span>
+                  <span className="text-gold/30 px-1">·</span>
+                  <span className="px-4">🏰 Medieval Kingdoms</span>
+                  <span className="text-gold/30 px-1">·</span>
+                  <span className="px-4">🗺 Silk Road</span>
+                  <span className="text-gold/30 px-1">·</span>
+                  <span className="px-4">🌊 Age of Exploration</span>
+                  <span className="text-gold/30 px-1">·</span>
+                  <span className="px-4">⚱ Byzantine Court</span>
+                  <span className="text-gold/30 px-1">·</span>
+                  <span className="px-4">🌺 Aztec Empire</span>
+                  <span className="text-gold/30 px-1">·</span>
                 </Marquee>
               </motion.div>
             </div>
@@ -575,7 +602,7 @@ export default function App() {
             {/* Beam sweep */}
             <div className="absolute inset-0 beam-gradient pointer-events-none" />
 
-            <MagneticButton strength={0.4}>
+            <MagneticButton strength={0.7}>
               <div className="relative flex items-center gap-2.5">
                 <div className="relative">
                   <div className="w-8 h-8 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
