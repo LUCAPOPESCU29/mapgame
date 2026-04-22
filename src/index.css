@@ -39,7 +39,7 @@
 .leaflet-container {
   background: #0d0a06 !important;
   font-family: 'EB Garamond', serif;
-  cursor: none !important;
+  cursor: crosshair;
 }
 
 /* Crisper, more modern tile look — no sepia, higher contrast */

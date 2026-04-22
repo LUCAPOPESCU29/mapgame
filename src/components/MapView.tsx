@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, useMap, useMapEvents, ScaleControl, ZoomControl } from "react-leaflet";
 import L from "leaflet";
-import { CustomCursor } from "./ui/custom-cursor";
 
 import iconUrl from "leaflet/dist/images/marker-icon.png";
 import iconShadowUrl from "leaflet/dist/images/marker-shadow.png";
@@ -139,14 +138,13 @@ function GeocodingOverlay({ active }: { active: boolean }) {
   const map = useMap();
   useEffect(() => {
     // Keep cursor hidden (none) so our CustomCursor shows; use wait during geocoding
-    map.getContainer().style.cursor = active ? "wait" : "none";
+    map.getContainer().style.cursor = active ? "wait" : "crosshair";
   }, [map, active]);
   return null;
 }
 
 export function MapView({ onCountryClick, isGeocoding }: MapViewProps) {
   const selectedPos = useRef<{ lat: number; lng: number } | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleCountryClick = useCallback(
     (country: string, lat: number, lng: number) => {
@@ -157,8 +155,7 @@ export function MapView({ onCountryClick, isGeocoding }: MapViewProps) {
   );
 
   return (
-    <div ref={containerRef} className="w-full h-full">
-      <CustomCursor containerRef={containerRef as React.RefObject<HTMLElement | null>} />
+    <div className="w-full h-full">
     <MapContainer
       center={[45, 15]}
       zoom={4}

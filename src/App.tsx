@@ -13,7 +13,6 @@ import { NumberTicker } from "./components/ui/number-ticker";
 import { WordRotate } from "./components/ui/word-rotate";
 import { Marquee } from "./components/ui/marquee";
 import { MagneticButton } from "./components/ui/magnetic-button";
-import { GlowingStars } from "./components/ui/glowing-stars";
 import { MapRipple } from "./components/ui/map-ripple";
 
 type ViewMode = "map" | "list";
@@ -167,11 +166,6 @@ export default function App() {
           animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.8, 0.4] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 8 }}
         />
-      </div>
-
-      {/* ── Glowing stars — above map at z-15 ────────────── */}
-      <div className="absolute inset-0 z-[15] pointer-events-none overflow-hidden">
-        <GlowingStars />
       </div>
 
       {/* ── Map ───────────────────────────────────────────── */}
