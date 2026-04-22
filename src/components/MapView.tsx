@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
-import { MapContainer, TileLayer, useMap, useMapEvents, ScaleControl } from "react-leaflet";
+import { MapContainer, TileLayer, useMap, useMapEvents, ScaleControl, ZoomControl } from "react-leaflet";
 import L from "leaflet";
 
 import iconUrl from "leaflet/dist/images/marker-icon.png";
@@ -160,7 +160,7 @@ export function MapView({ onCountryClick, isGeocoding }: MapViewProps) {
       minZoom={2}
       maxZoom={12}
       className="w-full h-full"
-      zoomControl={true}
+      zoomControl={false}
       attributionControl={true}
       style={{ background: "#0d0a06" }}
       worldCopyJump={true}
@@ -183,6 +183,7 @@ export function MapView({ onCountryClick, isGeocoding }: MapViewProps) {
         className="map-label-layer"
       />
 
+      <ZoomControl position="bottomright" />
       <ClickHandler onCountryClick={handleCountryClick} isGeocoding={isGeocoding} />
       <GeocodingOverlay active={isGeocoding} />
       <ScaleControl position="bottomleft" imperial={false} />
