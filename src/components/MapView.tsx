@@ -244,7 +244,8 @@ function MapControlIcon({ name }: { name: "target" | "layers" }) {
 function MobileMapControls({ map }: { map: L.Map | null }) {
   const controlClass = "flex h-14 w-14 items-center justify-center text-gold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.96]";
   const resetMap = () => {
-    map?.flyTo([51, 10], 4, { duration: 0.75 });
+    const isDesktop = (map?.getContainer().clientWidth ?? 0) >= 1024;
+    map?.flyTo([51, 10], isDesktop ? 5 : 4, { duration: 0.75 });
   };
 
   return (
@@ -325,8 +326,9 @@ export function MapView({ onCountryClick, isGeocoding }: MapViewProps) {
 
   const useFallbackTiles = tileErrorCount >= 4 && !tilesLoaded;
   const hasMapFailed = tileErrorCount >= 10 && !tilesLoaded;
-  const initialCenter: [number, number] = [50.8, 10.3];
-  const initialZoom = 4;
+  const isDesktopViewport = typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches;
+  const initialCenter: [number, number] = isDesktopViewport ? [51, 10] : [50.8, 10.3];
+  const initialZoom = isDesktopViewport ? 5 : 4;
 
   const handleCountryClick = useCallback(
     (country: string, lat: number, lng: number) => {
