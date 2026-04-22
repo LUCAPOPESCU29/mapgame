@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "react";
-import { MapContainer, TileLayer, useMap, useMapEvents, ScaleControl, ZoomControl } from "react-leaflet";
+import { MapContainer, TileLayer, useMap, useMapEvents, ScaleControl, ZoomControl, Marker } from "react-leaflet";
 import L from "leaflet";
 
 import iconUrl from "leaflet/dist/images/marker-icon.png";
@@ -9,6 +9,24 @@ L.Icon.Default.mergeOptions({ iconUrl, shadowUrl: iconShadowUrl });
 const CARTO_DARK_TILES = "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png";
 const CARTO_LABEL_TILES = "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png";
 const OSM_FALLBACK_TILES = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+
+const HISTORICAL_LABELS = [
+  { name: "NORWAY", position: [61.3, 8.2], className: "" },
+  { name: "SWEDEN", position: [62.3, 16.2], className: "" },
+  { name: "DENMARK", position: [56.1, 10.3], className: "" },
+  { name: "SCOTLAND", position: [57.1, -4.3], className: "" },
+  { name: "IRELAND", position: [53.3, -8.2], className: "" },
+  { name: "ENGLAND", position: [52.6, -1.5], className: "" },
+  { name: "FRANCE", position: [46.4, 2.0], className: "is-major" },
+  { name: "SPAIN", position: [40.2, -3.8], className: "is-major" },
+  { name: "ITALY", position: [42.8, 12.4], className: "" },
+  { name: "POLAND", position: [52.0, 19.2], className: "is-major" },
+  { name: "HUNGARY", position: [47.0, 19.2], className: "" },
+  { name: "LITHUANIA", position: [55.2, 24.0], className: "" },
+  { name: "NORTH<br/>SEA", position: [56.1, 3.0], className: "is-water" },
+  { name: "HOLY ROMAN<br/>EMPIRE", position: [50.0, 10.4], className: "is-empire" },
+  { name: "BYZANTINE<br/>EMPIRE", position: [41.2, 28.3], className: "is-empire" },
+] satisfies Array<{ name: string; position: [number, number]; className: string }>;
 
 interface MapViewProps {
   onCountryClick: (country: string, lat: number, lng: number) => void;
@@ -174,6 +192,84 @@ function MapResizeController() {
   return null;
 }
 
+function MapHandle({ onMap }: { onMap: (map: L.Map) => void }) {
+  const map = useMap();
+
+  useEffect(() => {
+    onMap(map);
+  }, [map, onMap]);
+
+  return null;
+}
+
+function HistoricalLabels() {
+  return (
+    <>
+      {HISTORICAL_LABELS.map((label) => (
+        <Marker
+          key={label.name}
+          position={label.position}
+          interactive={false}
+          icon={L.divIcon({
+            html: `<span class="historical-map-label ${label.className}">${label.name}</span>`,
+            className: "historical-label-marker",
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+          })}
+        />
+      ))}
+    </>
+  );
+}
+
+function MapControlIcon({ name }: { name: "target" | "layers" }) {
+  if (name === "layers") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" className="h-6 w-6">
+        <path d="m12 5 7.2 3.35L12 11.7 4.8 8.35 12 5Z" stroke="currentColor" strokeWidth="1.45" strokeLinejoin="round" />
+        <path d="m5.2 12.1 6.8 3.2 6.8-3.2M5.2 15.55l6.8 3.2 6.8-3.2" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" className="h-6 w-6">
+      <circle cx="12" cy="12" r="5.6" stroke="currentColor" strokeWidth="1.45" />
+      <circle cx="12" cy="12" r="1.65" fill="currentColor" />
+      <path d="M12 3.4v3M12 17.6v3M3.4 12h3M17.6 12h3" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function MobileMapControls({ map }: { map: L.Map | null }) {
+  const controlClass = "flex h-14 w-14 items-center justify-center text-gold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.96]";
+
+  return (
+    <div className="pointer-events-auto absolute right-3 top-[36%] z-[460] -translate-y-1/2 overflow-hidden rounded-[1.45rem] border border-gold/20 bg-[#0b0a07]/90 shadow-[0_18px_38px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(245,232,196,0.06)] sm:hidden">
+      <button
+        type="button"
+        aria-label="Reset map"
+        className={controlClass}
+        onClick={() => map?.flyTo([51, 10], 4, { duration: 0.75 })}
+      >
+        <MapControlIcon name="target" />
+      </button>
+      <div className="h-px bg-gold/15" />
+      <button type="button" aria-label="Zoom in" className={`${controlClass} font-garamond text-4xl leading-none`} onClick={() => map?.zoomIn()}>
+        +
+      </button>
+      <div className="h-px bg-gold/15" />
+      <button type="button" aria-label="Zoom out" className={`${controlClass} font-garamond text-4xl leading-none`} onClick={() => map?.zoomOut()}>
+        -
+      </button>
+      <div className="h-px bg-gold/15" />
+      <button type="button" aria-label="Map layers" className={controlClass} onClick={() => map?.setZoom(Math.max(map.getMinZoom(), map.getZoom()))}>
+        <MapControlIcon name="layers" />
+      </button>
+    </div>
+  );
+}
+
 function MapStatusOverlay({
   loading,
   fallback,
@@ -186,25 +282,30 @@ function MapStatusOverlay({
   if (!loading && !fallback && !failed) return null;
 
   return (
-    <div className="pointer-events-none absolute inset-x-4 top-[5.4rem] z-[450] flex justify-center sm:top-20">
-      <div className={`max-w-[320px] rounded-2xl border px-4 py-3 text-center backdrop-blur-xl shadow-[0_14px_34px_rgba(0,0,0,0.42)] ${
+    <div className="pointer-events-none absolute inset-x-4 bottom-[10.9rem] z-[450] flex justify-center sm:bottom-auto sm:top-20">
+      <div className={`max-w-[320px] rounded-[1.55rem] border p-1.5 text-center shadow-[0_18px_42px_rgba(0,0,0,0.48),inset_0_1px_1px_rgba(245,232,196,0.08)] ${
         failed
-          ? "border-red-400/25 bg-red-950/40"
-          : "border-gold/20 bg-ink/80"
+          ? "border-red-400/25 bg-red-950/60"
+          : "border-gold/20 bg-[#0d0c08]/90"
       }`}>
-        <div className="mx-auto mb-2 h-1 w-24 overflow-hidden rounded-full bg-white/10">
-          <div className={`h-full rounded-full ${failed ? "bg-red-300/80" : "bg-gold/80"} ${loading ? "map-status-progress" : "w-full"}`} />
+        <div className="rounded-[1.15rem] bg-[#11100b]/90 px-8 py-4 shadow-[inset_0_1px_0_rgba(245,232,196,0.05)]">
+          <svg viewBox="0 0 24 24" aria-hidden="true" className={`mx-auto mb-2 h-6 w-6 ${failed ? "text-red-200" : "text-gold"}`} fill="none">
+            <path d="M7.2 4.5h9.6M7.2 19.5h9.6M8.4 4.5c0 3.1 1.35 4.75 3.6 6.3 2.25-1.55 3.6-3.2 3.6-6.3M8.4 19.5c0-3.1 1.35-4.75 3.6-6.3 2.25 1.55 3.6 3.2 3.6 6.3" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <p className="font-cinzel text-[1.45rem] font-semibold leading-none tracking-[0.03em] text-gold">
+            {failed ? "Map network issue" : fallback ? "Backup map active" : "Loading map..."}
+          </p>
+          <p className="mt-2 font-garamond text-base leading-snug text-parchment-600">
+            {failed
+              ? "Tiles are not responding. You can still browse nations from the menu."
+              : fallback
+              ? "Primary tiles were slow, so a backup layer is being used."
+              : "Fetching historical tiles"}
+          </p>
+          <div className="mx-auto mt-3 h-1.5 w-52 max-w-full overflow-hidden rounded-full bg-gold/10">
+            <div className={`h-full rounded-full ${failed ? "bg-red-300/80" : "bg-gold/80"} ${loading ? "map-status-progress" : "w-full"}`} />
+          </div>
         </div>
-        <p className="font-cinzel text-[10px] uppercase tracking-[0.24em] text-gold/80">
-          {failed ? "Map network issue" : fallback ? "Backup map active" : "Drawing the atlas"}
-        </p>
-        <p className="mt-1 font-garamond text-[12px] italic leading-snug text-parchment-500">
-          {failed
-            ? "The tile provider is not responding. You can still browse nations from the menu."
-            : fallback
-            ? "Primary tiles were slow, so a backup layer is being used."
-            : "Loading map tiles and labels for your screen."}
-        </p>
       </div>
     </div>
   );
@@ -212,13 +313,18 @@ function MapStatusOverlay({
 
 export function MapView({ onCountryClick, isGeocoding }: MapViewProps) {
   const [selectedPos, setSelectedPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [tilesLoading, setTilesLoading] = useState(true);
   const [tilesLoaded, setTilesLoaded] = useState(false);
   const [tileErrorCount, setTileErrorCount] = useState(0);
+  const [initialOverlayDone, setInitialOverlayDone] = useState(false);
 
   const useFallbackTiles = tileErrorCount >= 4 && !tilesLoaded;
   const hasMapFailed = tileErrorCount >= 10 && !tilesLoaded;
+  const isCompactViewport = typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
+  const initialCenter: [number, number] = isCompactViewport ? [50.8, 10.3] : [45, 15];
+  const initialZoom = isCompactViewport ? 4 : 3;
 
   const handleCountryClick = useCallback(
     (country: string, lat: number, lng: number) => {
@@ -228,72 +334,81 @@ export function MapView({ onCountryClick, isGeocoding }: MapViewProps) {
     [onCountryClick]
   );
 
+  useEffect(() => {
+    if (!mapReady || tilesLoading) return undefined;
+    const timer = window.setTimeout(() => setInitialOverlayDone(true), 1200);
+    return () => window.clearTimeout(timer);
+  }, [mapReady, tilesLoading]);
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-ink">
-    <MapStatusOverlay
-      loading={!mapReady || tilesLoading}
-      fallback={useFallbackTiles}
-      failed={hasMapFailed}
-    />
-    <MapContainer
-      center={[45, 15]}
-      zoom={3}
-      minZoom={2}
-      maxZoom={12}
-      className="w-full h-full"
-      zoomControl={false}
-      attributionControl={true}
-      style={{ background: "#0d0a06" }}
-      worldCopyJump={true}
-      zoomAnimation={true}
-      fadeAnimation={true}
-      whenReady={() => setMapReady(true)}
-    >
-      <TileLayer
-        key={useFallbackTiles ? "osm-fallback" : "carto-dark"}
-        url={useFallbackTiles ? OSM_FALLBACK_TILES : CARTO_DARK_TILES}
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
-        subdomains={useFallbackTiles ? "abc" : "abcd"}
-        maxZoom={20}
-        className={useFallbackTiles ? "map-fallback-layer" : "map-base-layer"}
-        eventHandlers={{
-          loading: () => setTilesLoading(true),
-          load: () => setTilesLoading(false),
-          tileload: () => {
-            setTilesLoaded(true);
-            setTilesLoading(false);
-          },
-          tileerror: () => {
-            setTileErrorCount((count) => count + 1);
-            setTilesLoading(false);
-          },
-        }}
+      <MapStatusOverlay
+        loading={!initialOverlayDone || !mapReady || tilesLoading}
+        fallback={useFallbackTiles}
+        failed={hasMapFailed}
       />
-      {!useFallbackTiles && (
+      <MobileMapControls map={mapInstance} />
+      <MapContainer
+        center={initialCenter}
+        zoom={initialZoom}
+        minZoom={2}
+        maxZoom={12}
+        className="w-full h-full"
+        zoomControl={false}
+        attributionControl={true}
+        style={{ background: "#0d0a06" }}
+        worldCopyJump={true}
+        zoomAnimation={true}
+        fadeAnimation={true}
+        whenReady={() => setMapReady(true)}
+      >
         <TileLayer
-          url={CARTO_LABEL_TILES}
-          subdomains="abcd"
+          key={useFallbackTiles ? "osm-fallback" : "carto-dark"}
+          url={useFallbackTiles ? OSM_FALLBACK_TILES : CARTO_DARK_TILES}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+          subdomains={useFallbackTiles ? "abc" : "abcd"}
           maxZoom={20}
-          className="map-label-layer"
+          className={useFallbackTiles ? "map-fallback-layer" : "map-base-layer"}
           eventHandlers={{
-            tileerror: () => setTileErrorCount((count) => count + 1),
+            loading: () => setTilesLoading(true),
+            load: () => setTilesLoading(false),
+            tileload: () => {
+              setTilesLoaded(true);
+              setTilesLoading(false);
+            },
+            tileerror: () => {
+              setTileErrorCount((count) => count + 1);
+              setTilesLoading(false);
+            },
           }}
         />
-      )}
+        {!useFallbackTiles && (
+          <TileLayer
+            url={CARTO_LABEL_TILES}
+            subdomains="abcd"
+            maxZoom={20}
+            className="map-label-layer"
+            eventHandlers={{
+              tileerror: () => setTileErrorCount((count) => count + 1),
+            }}
+          />
+        )}
 
-      <ZoomControl position="bottomright" />
-      <MapResizeController />
-      <ClickHandler onCountryClick={handleCountryClick} isGeocoding={isGeocoding} />
-      <GeocodingOverlay active={isGeocoding} />
-      <ScaleControl position="bottomleft" imperial={false} />
+        <ZoomControl position="bottomright" />
+        <MapHandle onMap={setMapInstance} />
+        <MapResizeController />
+        <ClickHandler onCountryClick={handleCountryClick} isGeocoding={isGeocoding} />
+        <GeocodingOverlay active={isGeocoding} />
+        <ScaleControl position="bottomleft" imperial={false} />
+        <HistoricalLabels />
 
-      {selectedPos && (
-        <>
-          <SelectedMarker lat={selectedPos.lat} lng={selectedPos.lng} />
-          <MapController lat={selectedPos.lat} lng={selectedPos.lng} />
-        </>
-      )}
-    </MapContainer>
+        {selectedPos && (
+          <>
+            <SelectedMarker lat={selectedPos.lat} lng={selectedPos.lng} />
+            <MapController lat={selectedPos.lat} lng={selectedPos.lng} />
+          </>
+        )}
+      </MapContainer>
     </div>
   );
 }
