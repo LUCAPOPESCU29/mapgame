@@ -6,19 +6,11 @@ import { COUNTRY_REGIONS } from "./data/countryRegions";
 import { MapRipple } from "./components/ui/map-ripple";
 
 type ViewMode = "map" | "list";
-type MobileTab = "map" | "timeline" | "chronicles" | "collection" | "profile";
+type MobileIconName = "brand" | "search" | "menu" | "send" | "map";
 
 const MapView = lazy(() => import("./components/MapView").then((module) => ({ default: module.MapView })));
 const SidePanel = lazy(() => import("./components/SidePanel").then((module) => ({ default: module.SidePanel })));
 const Chatbot = lazy(() => import("./components/Chatbot").then((module) => ({ default: module.Chatbot })));
-
-const mobileNavItems: { id: MobileTab; label: string }[] = [
-  { id: "map", label: "Map" },
-  { id: "timeline", label: "Timeline" },
-  { id: "chronicles", label: "Chronicles" },
-  { id: "collection", label: "Collection" },
-  { id: "profile", label: "Profile" },
-];
 
 // 3D tilt card for country list
 function TiltCard({
@@ -59,7 +51,7 @@ function TiltCard({
   );
 }
 
-function MobileIcon({ name, className = "" }: { name: MobileTab | "search" | "menu" | "send" | "brand"; className?: string }) {
+function MobileIcon({ name, className = "" }: { name: MobileIconName; className?: string }) {
   if (name === "brand") {
     return (
       <svg className={className} viewBox="0 0 48 48" aria-hidden="true" fill="none">
@@ -96,42 +88,6 @@ function MobileIcon({ name, className = "" }: { name: MobileTab | "search" | "me
     );
   }
 
-  if (name === "timeline") {
-    return (
-      <svg className={className} viewBox="0 0 24 24" aria-hidden="true" fill="none">
-        <circle cx="12" cy="12" r="7.15" stroke="currentColor" strokeWidth="1.55" />
-        <path d="M12 7.8v4.45l3 1.65" stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-
-  if (name === "chronicles") {
-    return (
-      <svg className={className} viewBox="0 0 24 24" aria-hidden="true" fill="none">
-        <path d="M5.25 6.85c2.18-.95 4.28-.88 6.4.18.23.12.47.12.7 0 2.12-1.06 4.22-1.13 6.4-.18v10.3c-2.18-.95-4.28-.88-6.4.18a.77.77 0 0 1-.7 0c-2.12-1.06-4.22-1.13-6.4-.18V6.85Z" stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M12 7.45v10.1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  if (name === "collection") {
-    return (
-      <svg className={className} viewBox="0 0 24 24" aria-hidden="true" fill="none">
-        <path d="M12 4.9 18 7.55v4.25c0 3.75-2.35 6.2-6 7.3-3.65-1.1-6-3.55-6-7.3V7.55L12 4.9Z" stroke="currentColor" strokeWidth="1.55" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-
-  if (name === "profile") {
-    return (
-      <svg className={className} viewBox="0 0 24 24" aria-hidden="true" fill="none">
-        <circle cx="12" cy="8.6" r="3.05" stroke="currentColor" strokeWidth="1.55" />
-        <path d="M5.85 18.35c1.18-3.05 3.08-4.55 6.15-4.55s4.98 1.5 6.15 4.55" stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" />
-        <circle cx="12" cy="12" r="8.15" stroke="currentColor" strokeWidth="1.1" opacity=".45" />
-      </svg>
-    );
-  }
-
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true" fill="none">
       <path d="M4.9 6.8c2.45-1.05 4.8-1 7.1.2 2.3-1.2 4.65-1.25 7.1-.2v10.4c-2.45-1.05-4.8-1-7.1.2-2.3-1.2-4.65-1.25-7.1-.2V6.8Z" stroke="currentColor" strokeWidth="1.55" strokeLinejoin="round" />
@@ -145,11 +101,13 @@ function MobileAtlasHeader({
   onSearchChange,
   onOpenSearch,
   onOpenMenu,
+  onOpenChat,
 }: {
   listSearch: string;
   onSearchChange: (value: string) => void;
   onOpenSearch: () => void;
   onOpenMenu: () => void;
+  onOpenChat: () => void;
 }) {
   return (
     <motion.div
@@ -158,37 +116,43 @@ function MobileAtlasHeader({
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       transition={{ duration: 0.85, ease: [0.32, 0.72, 0, 1] }}
     >
-      <div className="rounded-[1.45rem] border border-gold/20 bg-[#0d0c08]/90 p-1 shadow-[0_18px_42px_rgba(0,0,0,0.46),inset_0_1px_1px_rgba(245,232,196,0.08)] md:rounded-[2rem] md:p-1.5">
-        <div className="flex items-center gap-1.5 rounded-[1.12rem] bg-[#11100b]/90 px-2 py-1.5 shadow-[inset_0_1px_0_rgba(245,232,196,0.07)] md:gap-3 md:rounded-[1.55rem] md:px-3 md:py-2.5">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-gold/20 bg-[#17130a] text-gold shadow-[inset_0_1px_1px_rgba(245,232,196,0.08)] md:h-16 md:w-16 md:rounded-[1.35rem]">
-            <MobileIcon name="brand" className="h-9 w-9 md:h-14 md:w-14" />
+      <div className="rounded-[1.25rem] border border-gold/18 bg-[#0d0c08]/88 p-1 shadow-[0_14px_34px_rgba(0,0,0,0.42),inset_0_1px_1px_rgba(245,232,196,0.07)]">
+        <div className="flex items-center gap-2 rounded-[0.95rem] bg-[#11100b]/88 px-2 py-1.5 shadow-[inset_0_1px_0_rgba(245,232,196,0.06)]">
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-gold/18 bg-[#17130a] text-gold shadow-[inset_0_1px_1px_rgba(245,232,196,0.07)]">
+            <MobileIcon name="brand" className="h-8 w-8" />
           </div>
 
-          <div className="min-w-[5.9rem] flex-shrink-0 md:min-w-[13rem]">
-            <p className="font-cinzel text-[0.9rem] font-bold leading-none tracking-[0.08em] text-gold md:text-2xl">Historicus</p>
-            <p className="mt-0.5 font-cinzel text-[0.5rem] uppercase leading-none tracking-[0.14em] text-gold/75 md:mt-1 md:text-[0.74rem]">
-              Europa Temporis
-            </p>
+          <div className="hidden min-w-[5.8rem] flex-shrink-0 min-[430px]:block">
+            <p className="font-cinzel text-[0.82rem] font-bold leading-none tracking-[0.08em] text-gold">Historicus</p>
           </div>
 
-          <label className="flex min-w-0 flex-1 items-center gap-1.5 rounded-full border border-gold/20 bg-[#090806]/90 px-2.5 py-2 text-parchment-500 shadow-[inset_0_1px_0_rgba(245,232,196,0.04)] md:gap-3 md:px-5 md:py-3.5">
-            <MobileIcon name="search" className="h-4 w-4 flex-shrink-0 text-gold/70 md:h-6 md:w-6" />
+          <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full border border-gold/16 bg-[#090806]/88 px-3 text-parchment-500 shadow-[inset_0_1px_0_rgba(245,232,196,0.04)]">
+            <MobileIcon name="search" className="h-4 w-4 flex-shrink-0 text-gold/65" />
             <input
               value={listSearch}
               onChange={(event) => onSearchChange(event.target.value)}
               onFocus={onOpenSearch}
-              placeholder="Search places, events..."
-              className="min-w-0 flex-1 bg-transparent font-garamond text-[0.82rem] text-parchment-200 outline-none placeholder:text-parchment-600 md:text-xl"
+              placeholder="Search..."
+              className="min-w-0 flex-1 bg-transparent font-garamond text-[0.82rem] text-parchment-200 outline-none placeholder:text-parchment-700"
             />
           </label>
 
           <button
             type="button"
+            onClick={onOpenChat}
+            aria-label="Open Historicus chat"
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gold text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.96]"
+          >
+            <MobileIcon name="send" className="h-5 w-5" />
+          </button>
+
+          <button
+            type="button"
             onClick={onOpenMenu}
             aria-label="Open navigation"
-            className="group flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-gold/20 bg-[#11100a] text-gold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] md:h-16 md:w-16 md:rounded-[1.35rem]"
+            className="group flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-gold/18 bg-[#11100a] text-gold transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.96]"
           >
-            <MobileIcon name="menu" className="h-6 w-6 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-active:scale-95 md:h-9 md:w-9" />
+            <MobileIcon name="menu" className="h-5 w-5 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-active:scale-95" />
           </button>
         </div>
       </div>
@@ -211,35 +175,32 @@ function DesktopAtlasHeader({
 }) {
   return (
     <motion.div
-      className="pointer-events-auto absolute left-6 right-6 top-6 z-30 hidden lg:block xl:left-8 xl:right-8 xl:top-7"
+      className="pointer-events-auto absolute left-6 right-6 top-6 z-30 hidden lg:block"
       initial={{ opacity: 0, y: -18, filter: "blur(10px)" }}
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       transition={{ duration: 0.9, ease: [0.32, 0.72, 0, 1] }}
     >
-      <div className="mx-auto grid max-w-[1360px] grid-cols-[300px_minmax(280px,1fr)_260px_72px] items-center gap-3 xl:grid-cols-[330px_minmax(360px,1fr)_320px_82px] xl:gap-5">
-        <div className="rounded-[2rem] border border-gold/20 bg-[#0d0c08]/90 p-1.5 shadow-[0_18px_42px_rgba(0,0,0,0.46),inset_0_1px_1px_rgba(245,232,196,0.08)]">
-          <div className="flex h-[4.65rem] items-center gap-4 rounded-[1.55rem] bg-[#11100b]/90 px-4 shadow-[inset_0_1px_0_rgba(245,232,196,0.07)]">
-            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[1.2rem] border border-gold/20 bg-[#17130a] text-gold shadow-[inset_0_1px_1px_rgba(245,232,196,0.08)]">
-              <MobileIcon name="brand" className="h-12 w-12" />
+      <div className="mx-auto flex max-w-[1180px] items-center gap-3">
+        <div className="rounded-[1.45rem] border border-gold/18 bg-[#0d0c08]/88 p-1 shadow-[0_14px_34px_rgba(0,0,0,0.42),inset_0_1px_1px_rgba(245,232,196,0.07)]">
+          <div className="flex h-12 items-center gap-3 rounded-[1.1rem] bg-[#11100b]/88 px-3 pr-5 shadow-[inset_0_1px_0_rgba(245,232,196,0.06)]">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-gold/18 bg-[#17130a] text-gold shadow-[inset_0_1px_1px_rgba(245,232,196,0.07)]">
+              <MobileIcon name="brand" className="h-8 w-8" />
             </div>
             <div className="min-w-0">
-              <p className="font-cinzel text-[1.5rem] font-bold leading-none tracking-[0.12em] text-gold">Historicus</p>
-              <p className="mt-1 font-cinzel text-[0.7rem] uppercase leading-none tracking-[0.24em] text-gold/70">
-                Europa Temporis
-              </p>
+              <p className="font-cinzel text-[1.08rem] font-bold leading-none tracking-[0.12em] text-gold">Historicus</p>
             </div>
           </div>
         </div>
 
-        <label className="rounded-[2rem] border border-gold/20 bg-[#0d0c08]/90 p-1.5 shadow-[0_18px_42px_rgba(0,0,0,0.42),inset_0_1px_1px_rgba(245,232,196,0.08)]">
-          <div className="flex h-[4.65rem] items-center gap-4 rounded-[1.55rem] bg-[#080705]/92 px-7 shadow-[inset_0_1px_0_rgba(245,232,196,0.06)]">
-            <MobileIcon name="search" className="h-6 w-6 flex-shrink-0 text-gold/70" />
+        <label className="min-w-[18rem] flex-1 rounded-[1.45rem] border border-gold/18 bg-[#0d0c08]/88 p-1 shadow-[0_14px_34px_rgba(0,0,0,0.38),inset_0_1px_1px_rgba(245,232,196,0.07)]">
+          <div className="flex h-12 items-center gap-3 rounded-[1.1rem] bg-[#080705]/90 px-5 shadow-[inset_0_1px_0_rgba(245,232,196,0.05)]">
+            <MobileIcon name="search" className="h-5 w-5 flex-shrink-0 text-gold/65" />
             <input
               value={listSearch}
               onChange={(event) => onSearchChange(event.target.value)}
               onFocus={onOpenSearch}
-              placeholder="Search places, events..."
-              className="min-w-0 flex-1 bg-transparent font-garamond text-[1.2rem] text-parchment-200 outline-none placeholder:text-parchment-600"
+              placeholder="Search places..."
+              className="min-w-0 flex-1 bg-transparent font-garamond text-base text-parchment-200 outline-none placeholder:text-parchment-700"
             />
           </div>
         </label>
@@ -247,15 +208,12 @@ function DesktopAtlasHeader({
         <button
           type="button"
           onClick={onOpenChat}
-          className="group rounded-[2rem] border border-gold/25 bg-gold/95 p-1.5 text-left text-ink shadow-[0_18px_42px_rgba(0,0,0,0.42),inset_0_1px_1px_rgba(255,255,255,0.18)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 active:scale-[0.98]"
+          className="group rounded-[1.45rem] border border-gold/22 bg-gold/95 p-1 text-left text-ink shadow-[0_14px_34px_rgba(0,0,0,0.36),inset_0_1px_1px_rgba(255,255,255,0.16)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-0.5 active:scale-[0.98]"
         >
-          <div className="flex h-[4.65rem] items-center justify-between gap-4 rounded-[1.55rem] bg-[#d7b755] px-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
-            <div>
-              <p className="font-cinzel text-[0.78rem] uppercase tracking-[0.2em] text-ink/60">Chatbot</p>
-              <p className="mt-1 font-cinzel text-lg font-bold leading-none tracking-[0.08em]">Ask Historicus</p>
-            </div>
-            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#0d0a06] text-gold transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-0.5">
-              <MobileIcon name="send" className="h-6 w-6" />
+          <div className="flex h-12 items-center gap-3 rounded-[1.1rem] bg-[#d7b755] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]">
+            <span className="whitespace-nowrap font-cinzel text-sm font-bold tracking-[0.12em]">Ask AI</span>
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#0d0a06] text-gold transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+              <MobileIcon name="send" className="h-5 w-5" />
             </span>
           </div>
         </button>
@@ -264,153 +222,14 @@ function DesktopAtlasHeader({
           type="button"
           onClick={onOpenMenu}
           aria-label="Open navigation"
-          className="group rounded-[2rem] border border-gold/20 bg-[#0d0c08]/90 p-1.5 text-gold shadow-[0_18px_42px_rgba(0,0,0,0.42),inset_0_1px_1px_rgba(245,232,196,0.08)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+          className="group rounded-[1.45rem] border border-gold/18 bg-[#0d0c08]/88 p-1 text-gold shadow-[0_14px_34px_rgba(0,0,0,0.36),inset_0_1px_1px_rgba(245,232,196,0.07)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
         >
-          <span className="flex h-[4.65rem] items-center justify-center rounded-[1.55rem] bg-[#11100a] shadow-[inset_0_1px_0_rgba(245,232,196,0.06)]">
-            <MobileIcon name="menu" className="h-9 w-9 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105" />
+          <span className="flex h-12 w-12 items-center justify-center rounded-[1.1rem] bg-[#11100a] shadow-[inset_0_1px_0_rgba(245,232,196,0.05)]">
+            <MobileIcon name="menu" className="h-6 w-6 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105" />
           </span>
         </button>
       </div>
     </motion.div>
-  );
-}
-
-function MobileCompassOverlay() {
-  return (
-    <motion.div
-      className="pointer-events-none absolute left-5 top-[8.8rem] z-20 hidden text-gold min-[360px]:block md:left-12 md:top-[9.75rem]"
-      initial={{ opacity: 0, x: -18, filter: "blur(8px)" }}
-      animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-      transition={{ duration: 0.9, delay: 0.18, ease: [0.32, 0.72, 0, 1] }}
-    >
-      <div className="relative flex h-28 w-28 items-center justify-center opacity-80 md:h-36 md:w-36">
-        <svg viewBox="0 0 112 112" className="h-28 w-28 md:h-36 md:w-36" aria-hidden="true" fill="none">
-          <circle cx="56" cy="56" r="29" stroke="currentColor" strokeWidth="0.8" opacity=".22" />
-          <path d="M56 9 62.5 51.5 103 56 62.5 60.5 56 103 49.5 60.5 9 56 49.5 51.5 56 9Z" stroke="currentColor" strokeWidth="0.9" opacity=".45" />
-          <path d="M56 22 60.1 52 90 56 60.1 60 56 90 51.9 60 22 56 51.9 52 56 22Z" fill="currentColor" opacity=".18" />
-          <path d="M56 34v44M34 56h44" stroke="currentColor" strokeWidth="1" opacity=".45" />
-          <text x="56" y="16" textAnchor="middle" className="fill-current font-cinzel text-[10px] font-bold">N</text>
-        </svg>
-      </div>
-      <div className="-mt-1 ml-1 flex w-24 flex-col items-center gap-1 md:w-32">
-        <p className="font-cinzel text-sm tracking-[0.12em] text-gold md:text-base">500 km</p>
-        <div className="h-px w-full bg-gold/70" />
-      </div>
-    </motion.div>
-  );
-}
-
-function MobileBottomNavigation({
-  active,
-  onChange,
-}: {
-  active: MobileTab;
-  onChange: (tab: MobileTab) => void;
-}) {
-  return (
-    <motion.nav
-      className="pointer-events-auto absolute inset-x-0 bottom-[5.95rem] z-30 lg:hidden"
-      initial={{ opacity: 0, y: 28, filter: "blur(10px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      transition={{ duration: 0.95, delay: 0.22, ease: [0.32, 0.72, 0, 1] }}
-      aria-label="Mobile atlas navigation"
-    >
-      <div className="relative border-y border-gold/15 bg-[#0b0a07]/95 shadow-[0_-22px_55px_rgba(0,0,0,0.56),inset_0_1px_0_rgba(245,232,196,0.04)]">
-        <div className="absolute left-1/2 top-0 h-8 w-32 -translate-x-1/2 -translate-y-[58%] rounded-t-[3rem] border-x border-t border-gold/15 bg-[#0b0a07]/95 md:h-10 md:w-44" />
-        <div className="relative mx-auto grid h-[4.25rem] max-w-[30rem] grid-cols-5 px-2 pt-2 md:h-[6.1rem] md:max-w-[920px] md:px-7 md:pt-3">
-          {mobileNavItems.map((item) => {
-            const selected = active === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onChange(item.id)}
-                className={`group mx-auto flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-gold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] md:gap-2 md:rounded-[1.35rem] md:px-4 ${
-                  selected
-                    ? "w-full border border-gold/25 bg-gold/10 shadow-[inset_0_1px_0_rgba(245,232,196,0.07)]"
-                    : "w-full text-gold/70"
-                }`}
-              >
-                <MobileIcon name={item.id} className={`h-5 w-5 md:h-7 md:w-7 ${selected ? "text-gold" : "text-gold/70"}`} />
-                <span className="w-full truncate text-center font-cinzel text-[0.48rem] uppercase tracking-[0.06em] md:text-[0.68rem] md:tracking-[0.14em]">{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </motion.nav>
-  );
-}
-
-function DesktopBottomNavigation({
-  active,
-  onChange,
-}: {
-  active: MobileTab;
-  onChange: (tab: MobileTab) => void;
-}) {
-  return (
-    <motion.nav
-      className="pointer-events-auto absolute bottom-8 left-1/2 z-30 hidden w-[min(760px,calc(100vw-4rem))] lg:block"
-      style={{ x: "-50%" }}
-      initial={{ opacity: 0, y: 28, filter: "blur(10px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      transition={{ duration: 0.95, delay: 0.18, ease: [0.32, 0.72, 0, 1] }}
-      aria-label="Desktop atlas navigation"
-    >
-      <div className="rounded-[2.15rem] border border-gold/18 bg-[#0b0a07]/92 p-1.5 shadow-[0_-18px_54px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(245,232,196,0.06)]">
-        <div className="grid h-[5.4rem] grid-cols-5 gap-1 rounded-[1.75rem] bg-[#080705]/88 p-2 shadow-[inset_0_1px_0_rgba(245,232,196,0.04)]">
-          {mobileNavItems.map((item) => {
-            const selected = active === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onChange(item.id)}
-                className={`group flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-[1.35rem] px-3 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] ${
-                  selected
-                    ? "border border-gold/25 bg-gold/10 text-gold shadow-[inset_0_1px_0_rgba(245,232,196,0.08)]"
-                    : "text-gold/60 hover:bg-gold/10 hover:text-gold/85"
-                }`}
-              >
-                <MobileIcon name={item.id} className="h-6 w-6" />
-                <span className="w-full truncate text-center font-cinzel text-[0.62rem] uppercase tracking-[0.15em]">{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </motion.nav>
-  );
-}
-
-function MobileChatDock({ onOpen }: { onOpen: () => void }) {
-  return (
-    <div className="pointer-events-auto absolute inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 lg:hidden">
-      <motion.button
-        type="button"
-        onClick={onOpen}
-        className="w-full rounded-[1.7rem] border border-gold/25 bg-[#0c0b08]/95 p-1 text-left shadow-[0_-12px_44px_rgba(0,0,0,0.58),inset_0_1px_1px_rgba(245,232,196,0.06)] md:rounded-[2rem] md:p-1.5"
-        initial={{ opacity: 0, y: 34, filter: "blur(10px)" }}
-        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        transition={{ duration: 1, delay: 0.32, ease: [0.32, 0.72, 0, 1] }}
-        whileTap={{ scale: 0.985 }}
-      >
-        <div className="flex h-16 items-center gap-1.5 rounded-[1.45rem] border border-gold/10 bg-[#11100c] px-2 shadow-[inset_0_1px_0_rgba(245,232,196,0.05)] md:h-[4.85rem] md:gap-3 md:rounded-[1.55rem] md:px-3">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-gold/15 bg-[#090806] text-gold shadow-[inset_0_1px_0_rgba(245,232,196,0.05)] md:h-14 md:w-14">
-            <MobileIcon name="chronicles" className="h-6 w-6 md:h-7 md:w-7" />
-          </div>
-          <div className="flex min-w-0 flex-1 items-center rounded-full bg-[#080705] px-3 py-3 md:px-6 md:py-4">
-            <span className="truncate font-garamond text-[0.92rem] font-semibold text-parchment-600 md:text-xl">
-              Ask anything about history...
-            </span>
-          </div>
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gold text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] md:h-14 md:w-14">
-            <MobileIcon name="send" className="h-6 w-6 md:h-7 md:w-7" />
-          </div>
-        </div>
-      </motion.button>
-    </div>
   );
 }
 
@@ -454,7 +273,6 @@ export default function App() {
   const [viewMode, setViewMode] = useState<ViewMode>("map");
   const [listSearch, setListSearch] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
-  const [mobileTab, setMobileTab] = useState<MobileTab>("map");
   const isDesktop = useMediaQuery("(min-width: 1024px)", true);
 
   const { streamState, ask, followUp, reset, hasHistory } = useConversation();
@@ -479,21 +297,6 @@ export default function App() {
   const handleAsk = useCallback(async (country: string, region: string, era: string) => {
     await ask(country, region, era);
   }, [ask]);
-
-  const handleMobileTabChange = useCallback((tab: MobileTab) => {
-    setMobileTab(tab);
-    if (tab === "map") {
-      setViewMode("map");
-      return;
-    }
-    if (tab === "collection") {
-      setViewMode("list");
-      return;
-    }
-    if (tab === "chronicles") {
-      setChatOpen(true);
-    }
-  }, []);
 
   const apiOk = hasApiKey();
   const allCountries = Object.keys(COUNTRY_REGIONS).sort();
@@ -535,31 +338,24 @@ export default function App() {
         listSearch={listSearch}
         onSearchChange={setListSearch}
         onOpenSearch={() => {
-          setMobileTab("collection");
           setViewMode("list");
         }}
         onOpenMenu={() => {
-          setMobileTab("collection");
           setViewMode("list");
         }}
+        onOpenChat={() => setChatOpen(true)}
       />
       <DesktopAtlasHeader
         listSearch={listSearch}
         onSearchChange={setListSearch}
         onOpenSearch={() => {
-          setMobileTab("collection");
           setViewMode("list");
         }}
         onOpenMenu={() => {
-          setMobileTab("collection");
           setViewMode("list");
         }}
-        onOpenChat={() => {
-          setMobileTab("chronicles");
-          setChatOpen(true);
-        }}
+        onOpenChat={() => setChatOpen(true)}
       />
-      <MobileCompassOverlay />
 
       {/* ── Geocoding spinner ─────────────────────────────── */}
       <AnimatePresence>
@@ -587,7 +383,7 @@ export default function App() {
       <AnimatePresence>
         {!apiOk && (
           <motion.div
-            className="absolute inset-x-0 bottom-[7.5rem] z-30 mx-auto w-full max-w-sm px-4 lg:inset-x-auto lg:bottom-auto lg:right-8 lg:top-32 lg:max-w-xs"
+            className="absolute inset-x-0 bottom-4 z-30 mx-auto w-full max-w-sm px-4 sm:bottom-6 lg:inset-x-auto lg:bottom-auto lg:right-8 lg:top-28 lg:max-w-xs"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
@@ -667,7 +463,7 @@ export default function App() {
                       transition={{ delay: Math.min(i * 0.012, 0.8) }}
                     >
                       <TiltCard
-                        onClick={() => { handleCountryClick(country); setViewMode("map"); setMobileTab("map"); }}
+                        onClick={() => { handleCountryClick(country); setViewMode("map"); }}
                         className={`w-full flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all group ${
                           isSelected
                             ? "border-gold/60 bg-gold/15 shadow-[0_0_16px_rgba(201,168,76,0.2)]"
@@ -705,19 +501,6 @@ export default function App() {
               hasHistory={hasHistory}
             />
           </Suspense>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {!chatOpen && viewMode === "map" && (
-          <>
-            <MobileBottomNavigation active={mobileTab} onChange={handleMobileTabChange} />
-            <DesktopBottomNavigation active={mobileTab} onChange={handleMobileTabChange} />
-            <MobileChatDock onOpen={() => {
-              setMobileTab("chronicles");
-              setChatOpen(true);
-            }} />
-          </>
         )}
       </AnimatePresence>
 
